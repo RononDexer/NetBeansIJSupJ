@@ -1,0 +1,2 @@
+selectWindow("Stabilized 2.5wk-actin-GFP-contl-Lens1.6-2.tif");
+run("EDF Easy ", "quality='0' topology='1' show-topology='on' show-view='on'");

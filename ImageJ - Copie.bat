@@ -1,0 +1,1 @@
+java.exe -Xmx1100m -classpath .\ExternalLibraries\jung2-2_0\*;.\ExternalLibraries\jama\*;ij.jar ij.ImageJ 

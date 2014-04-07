@@ -1,0 +1,10 @@
+#Map size
+512
+512
+#Energy calibration A1 to A3
+164.641
+106.818
+0.1498
+#Peak Width A4 & A5
+21.0572
+4.6589
