@@ -41,6 +41,8 @@ public class DataFilePIXE extends DataFile {
             IJ.log("Échec d'ouverture du fichier "+filePath);
         }
       }
+      
+      this.adc=adc1;
       return adc1;
     }
 }
