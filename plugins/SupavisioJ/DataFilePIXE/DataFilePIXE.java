@@ -26,13 +26,12 @@ public class DataFilePIXE extends DataFile {
       DataInputStream ips=null;
       try{
 	ips=new DataInputStream(new BufferedInputStream(new FileInputStream(filePath)));  
-	int[] evt = new int[3];
 	while(true){
+          int[] evt = new int[3];
 	  evt[0]=ips.readShort();
 	  evt[1]=ips.readShort();
 	  evt[2]=ips.readInt();
-	  IJ.log("Ajout d'un événement à "+evt[0]+" , "+evt[1]+" avec une energie de canal : "+evt[2]);
-	  adc1.addEvent(evt);
+          adc1.addEvent(evt);
 	}
       }
       catch (Exception e){
