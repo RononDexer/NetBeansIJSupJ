@@ -37,6 +37,21 @@ public class Spectra {
   public ADC getADC (){
       return adc;
   }
+  
+  public boolean energyExist(float energy){
+      if (energy<energyMin)
+          return false;
+      float energyMax;
+      if (stepEnergy==null){
+          energyMax = energyMin + (yEvt.length-1) * 1;
+      }
+      else {
+          energyMax = energyMin + (yEvt.length-1) * stepEnergy;
+      }
+      if (energy>energyMax)
+          return false;
+      return true;
+  }
     
   public void calibEnergy(float energyMin, float stepEnergy){
     this.energyMin=energyMin;
@@ -68,7 +83,7 @@ public class Spectra {
   
   public XYPlotSp plotSpectra(String titleWindow, String titleGraph){
       double[] xEnergies = convertFloatsToDoubles(getEnergies());
-      XYPlotSp plot1=new XYPlotSp(titleWindow,titleGraph,xEnergies,yEvt);
+      XYPlotSp plot1=new XYPlotSp(this,titleWindow,titleGraph,xEnergies,yEvt);
       return plot1;//plot1.showVisible()
   }
 
@@ -121,9 +136,37 @@ public class Spectra {
         valNbEventPerXY[event[0]+event[1]*(resX+1)]+=1;
       }
     }
-    IJ.log("Génération de l'image");
     ImageGenerated img= new ImageGenerated(this,valNbEventPerXY,start,end,resX,resY);
     return img;
+  }
+  
+  public ImageGenerated[] generatePicture(float[][] startEnd){
+    int resX=searchMax("x");
+    int resY=searchMax("y");
+    int[][] startEndInt = new int[startEnd.length][2];
+    for(int i=0; i<startEnd.length;i++){
+        startEndInt[i][0]= getIndiceEnergy(startEnd[i][0],false);
+        startEndInt[i][1]= getIndiceEnergy(startEnd[i][1],true);
+        IJ.log(String.valueOf(startEndInt[i][0])+" "+String.valueOf(startEndInt[i][1]));
+    }
+    double[][] valNbEventPerXY= new double[startEnd.length][(resX+1)*(resY+1)];
+    for (int i=0;i<adc.getNEvents();i++){
+      int[] event=adc.getEvent(i);
+      for (int j=0; j<startEnd.length;j++){
+        int indMin = startEndInt[j][0];
+        int indMax = startEndInt[j][1];
+        if (event[2]>=indMin && event[2]<=indMax){
+          valNbEventPerXY[j][event[0]+event[1]*(resX+1)]+=1;
+        }
+      }
+    }
+    ImageGenerated[] arrayOfImgGen = new ImageGenerated[startEnd.length];
+    for (int i=0; i<startEnd.length;i++){
+        float start = startEnd[i][0];
+        float end = startEnd[i][1];
+        arrayOfImgGen[i]= new ImageGenerated(this,valNbEventPerXY[i],start,end,resX,resY);
+    }
+    return arrayOfImgGen;
   }
   
 }
