@@ -1,10 +1,14 @@
 import SupavisioJ.DataFilePIXE.DataFilePIXE;
 import javax.swing.JFileChooser;
 import SupavisioJ.ConvertListFiles.FrameC.FrameC;
+import SupavisioJ.ConvertListFiles.ADC.ADC;
+import SupavisioJ.Spectra.Spectra;
+import SupavisioJ.ImageGenerated.ImageGenerated;
 import ij.*;
 import ij.plugin.*;
 import java.io.*;
 import javax.swing.SwingUtilities;
+import lib.XYPlotSp;
 
 
 public class Supavisio_J implements PlugIn {
@@ -13,10 +17,16 @@ public class Supavisio_J implements PlugIn {
   public void run(String arg) {	
     SwingUtilities.invokeLater(new Runnable(){
       public void run(){
-        IJ.log("Veuillez ouvrir un fichier pixe");
 	DataFilePIXE filePx=selectFiles();
-	filePx.open();
+	ADC adc1 = filePx.open(); 
+        Spectra spectra1= new Spectra(adc1);
+        spectra1.plotSpectra("Essai","essai").showVisible();
+        IJ.log("création de l'image");
+        ImageGenerated img= spectra1.generatePicture(255, 355);
+        IJ.log("affichage de l'image");
+        img.show("essai");
 	IJ.log("Lecture terminee");
+        
         IJ.log("Veuillez ouvrir un fichier lst");
 	FrameC frame_C = new FrameC();
 	frame_C.setVisible(true);
