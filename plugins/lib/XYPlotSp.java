@@ -22,6 +22,7 @@ import java.util.Vector;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -69,8 +70,8 @@ public class XYPlotSp extends JFrame {
         // create the chart...
         final JFreeChart chart = ChartFactory.createXYLineChart(
             titleGraph2,      // chart title
-            "X",                      // x axis label
-            "Y",                      // y axis label
+            "Energies",                      // x axis label
+            "Nbre événements",              // y axis label
             dataset,                  // data
             PlotOrientation.VERTICAL, // plot orientation (pretty obvious this one)
             false,                    // if true show the legeng (useful for several lignes)
@@ -117,20 +118,36 @@ public class XYPlotSp extends JFrame {
     
     private void initComponents(ChartPanel chartPanel) {
         for(int i=0;i<3;i++){
-            JComponent[] buttonsToAdd= new JComponent[3];
+            JComponent[] buttonsToAdd= new JComponent[4];
             JCheckBox jCheckBox1 = new JCheckBox();
             jCheckBox1.setText("NA");
             buttonsToAdd[0] = jCheckBox1;
             buttonsToAdd[1] = new JTextField();
             buttonsToAdd[2] = new JTextField();
+            buttonsToAdd[3] = new JTextField();
             vectButtonsSupp.add(buttonsToAdd);
         }
-        jButton1 = new javax.swing.JButton();
-        jButton1.setText("Plus ...");
+        jButtonPlus = new JButton();
+        jButtonPlus.setText("Plus ...");
         
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jButtonPlus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jButtonPlusActionPerformed(evt);
+            }
+        });
+        jButtonGenImg = new JButton();
+        jButtonGenImg.setText("Génerer images");
+        jButtonGenImg.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonGenImgActionPerformed(evt);
+            }
+        });
+        
+        jButtonLogLin = new JButton();
+        jButtonLogLin.setText("Log/Lin");
+        jButtonLogLin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonLogLinActionPerformed(evt);
             }
         });
         
@@ -147,16 +164,22 @@ public class XYPlotSp extends JFrame {
         for (int i=0; i<3;i++){
             JComponent[] tablJComp = (JComponent[]) vectButtonsSupp.get(i);
             JCheckBox checkBoxCurrent = (JCheckBox) tablJComp[0];
-            JTextField textFieldCurrent1= (JTextField) tablJComp[1];
-            JTextField textFieldCurrent2= (JTextField) tablJComp[2];
+            JTextField textFieldCurrentName= (JTextField) tablJComp[1];
+            JTextField textFieldCurrentMin= (JTextField) tablJComp[2];
+            JTextField textFieldCurrentMax=(JTextField) tablJComp[3];
+            textFieldCurrentName.setText("Name");
+            textFieldCurrentMin.setText("Min");
+            textFieldCurrentMax.setText("Max");
             grp1.addComponent(checkBoxCurrent, GroupLayout.PREFERRED_SIZE, 17, GroupLayout.PREFERRED_SIZE);
             grp1.addPreferredGap(ComponentPlacement.RELATED);
-            grp1.addComponent(textFieldCurrent1, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE);
+            grp1.addComponent(textFieldCurrentName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
             grp1.addPreferredGap(ComponentPlacement.RELATED);
-            grp1.addComponent(textFieldCurrent2, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE);
+            grp1.addComponent(textFieldCurrentMin, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE);
+            grp1.addPreferredGap(ComponentPlacement.RELATED);
+            grp1.addComponent(textFieldCurrentMax, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE);
 
             if (i!=3){
-                grp1.addGap(18, 18, 18);
+                grp1.addGap(40,40,40);
             }
             else{
                 grp1.addContainerGap(25, Short.MAX_VALUE);
@@ -164,11 +187,16 @@ public class XYPlotSp extends JFrame {
         }
         paralGroupHor.addGroup(grp1);
         
-        SequentialGroup grpButtonMore = layout.createSequentialGroup();
-        grpButtonMore.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-        grpButtonMore.addComponent(jButton1, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE);
-        grpButtonMore.addGap(299, 299, 299);
-        paralGroupHor.addGroup(GroupLayout.Alignment.TRAILING, grpButtonMore);
+        SequentialGroup grpButton = layout.createSequentialGroup();
+        grpButton.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        //grpButton.addGap(130);
+        grpButton.addComponent(jButtonPlus, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE);
+        grpButton.addPreferredGap(ComponentPlacement.RELATED);
+        grpButton.addComponent(jButtonGenImg, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE);
+        grpButton.addPreferredGap(ComponentPlacement.RELATED);
+        grpButton.addComponent(jButtonLogLin, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE);
+        grpButton.addGap(155, 155, 155);
+        paralGroupHor.addGroup(GroupLayout.Alignment.TRAILING, grpButton);
         
         //Layout vertical 
         
@@ -176,11 +204,13 @@ public class XYPlotSp extends JFrame {
         for (int i=0;i<3;i++){
             JComponent[] tablJComp = (JComponent[]) vectButtonsSupp.get(i);
             JCheckBox checkBoxCurrent = (JCheckBox) tablJComp[0];
-            JTextField textFieldCurrent1= (JTextField) tablJComp[1];
-            JTextField textFieldCurrent2= (JTextField) tablJComp[2];
+            JTextField textFieldCurrentName= (JTextField) tablJComp[1];
+            JTextField textFieldCurrentMin= (JTextField) tablJComp[2];
+            JTextField textFieldCurrentMax= (JTextField) tablJComp[3];
             grpIntChannel.addComponent(checkBoxCurrent);
-            grpIntChannel.addComponent(textFieldCurrent1,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
-            grpIntChannel.addComponent(textFieldCurrent2,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
+            grpIntChannel.addComponent(textFieldCurrentName,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
+            grpIntChannel.addComponent(textFieldCurrentMin,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
+            grpIntChannel.addComponent(textFieldCurrentMax,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
         }
        
         ParallelGroup paralGroup2Vert=layout.createParallelGroup(GroupLayout.Alignment.LEADING);
@@ -190,8 +220,12 @@ public class XYPlotSp extends JFrame {
         grpAll.addGroup(gpChart);
         grpAll.addContainerGap(10, Short.MAX_VALUE).addGroup(grpIntChannel);
         grpAll.addPreferredGap(ComponentPlacement.RELATED);
-        grpAll.addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE);
-        grpAll.addContainerGap();
+        ParallelGroup grpButtons = layout.createParallelGroup(GroupLayout.Alignment.BASELINE);
+        grpButtons.addComponent(jButtonPlus, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
+        grpButtons.addComponent(jButtonGenImg, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
+        grpButtons.addComponent(jButtonLogLin, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
+        grpAll.addContainerGap(10, Short.MAX_VALUE).addGroup(grpButtons);
+        grpAll.addGap(6, 6, 6);
       
         paralGroup2Vert.addGroup(GroupLayout.Alignment.TRAILING,grpAll);
         
@@ -200,20 +234,34 @@ public class XYPlotSp extends JFrame {
         pack();
     }                 
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {                                         
+    private void jButtonPlusActionPerformed(java.awt.event.ActionEvent evt) {                                         
         // TODO create 3 group of boutons at each evt
         IJ.log("fonctionnalité non codée pour le moment");
         //for(int i=0;i<3;i++){
-        //    JComponent[] buttonsToAdd= new JComponent[3];
+        //    JComponent[] buttonsToAdd= new JComponent[4];
         //    buttonsToAdd[0]=new JCheckBox();
         //    buttonsToAdd[1] = new JTextField();
         //    buttonsToAdd[2] = new JTextField();
+        //    buttonsToAdd[3] = new JTextField();
         //    vectButtonsSupp.add(buttonsToAdd);
         //}
         
-    }                                        
+    }   
+    
+    private void jButtonGenImgActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        // TODO gen img for all checkbox selected
+        IJ.log("fonctionnalité non codée pour le moment");
+    }
+    
+    private void jButtonLogLinActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        // TODO afficher log ou lin l'axe des y
+        IJ.log("fonctionnalité non codée pour le moment");
+    }
+        
     // Variables declaration - do not modify 
     private Vector vectButtonsSupp=new Vector();
-    private javax.swing.JButton jButton1;
+    private JButton jButtonPlus;
+    private JButton jButtonGenImg;
+    private JButton jButtonLogLin;
     // End of variables declaration                   
 }
