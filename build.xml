@@ -17,7 +17,7 @@
   
    <target name="compilePlugins" description="Compile plugins">
       <javac srcdir="plugins" destdir="plugins" optimize="on" source="1.7" target="1.7" debug="on"
-      classpath="./ij.jar"/>
+      classpath="./ij.jar" fork="yes"/>
     </target>
     
    <target name="build" depends="compile" description="Build ij.jar.">

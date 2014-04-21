@@ -7,6 +7,7 @@ import ij.*;
 import ij.gui.ImageCanvas;
 import ij.process.ImageProcessor;
 import ij.process.FloatProcessor;
+import lib.XYPlotSp;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -69,7 +70,8 @@ public class ImageGenerated {
       }           
     }   
     Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi);
-    spectreNewCalc.plotSpectra("essai","essai2");
+    XYPlotSp plot = spectreNewCalc.plotSpectra("essai","essai2");
+    plot.showVisible();
     return spectreNewCalc;
   }
   

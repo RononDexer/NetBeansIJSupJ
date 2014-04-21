@@ -47,7 +47,7 @@ roiMap.add(0);
 public int[] getEvent(int position){
 	return eventList.get(position);
 }
-private int[] getlastEvent(){
+public int[] getlastEvent(){
 	return eventList.get(getNEvents()-1);
 }
 

@@ -22,9 +22,12 @@ public class Supavisio_J implements PlugIn {
         Spectra spectra1= new Spectra(adc1);
         spectra1.plotSpectra("Essai","essai").showVisible();
         IJ.log("création de l'image");
-        ImageGenerated img= spectra1.generatePicture(255, 355);
+        float[][] fl = new float[1][2];
+        fl[0][0]=255;
+        fl[0][1]=355;
+        ImageGenerated[] img= spectra1.generatePicture(fl);
         IJ.log("affichage de l'image");
-        img.show("essai");
+        img[0].show("essai");
 	IJ.log("Lecture terminee");
         
         IJ.log("Veuillez ouvrir un fichier lst");
