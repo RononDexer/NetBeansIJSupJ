@@ -4,7 +4,7 @@
     <configuration>
         <general-data xmlns="http://www.netbeans.org/ns/freeform-project/1">
             <!-- Do not use Project Properties customizer when editing this file manually. -->
-            <name>ijNBv4.0</name>
+            <name>ijNBv7.0</name>
             <properties/>
             <folders>
                 <source-folder>
@@ -132,7 +132,7 @@
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/3">
             <compilation-unit>
                 <package-root>plugins</package-root>
-                <classpath mode="compile">ij.jar;plugins/_ijJif.jar;C:\Program Files (x86)\Java\jdk1.7.0_05\lib</classpath>
+                <classpath mode="compile">ij.jar:plugins/_ijJif.jar:C:/Program Files (x86)/Java/jdk1.7.0_05/lib:plugins/lib/hamcrestcore.jar:plugins/lib/jcommon.jar:plugins/lib/jfreechart.jar:plugins/lib/jfreechartexperimental.jar:plugins/lib/jfreechartswt.jar:plugins/lib/jfreesvg.jar:plugins/lib/junit.jar:plugins/lib/orsonchartseval.jar:plugins/lib/orsonpdfeval.jar:plugins/lib/servlet.jar:plugins/lib/swtgraphics2d.jar</classpath>
                 <source-level>1.7</source-level>
             </compilation-unit>
             <compilation-unit>
