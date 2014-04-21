@@ -30,9 +30,6 @@ public class ImageGenerated {
   public ImageGenerated(Spectra spectra,double[] valNbEventPerXY,float start, float end,int resX,int resY) {
     sourceSpectra=spectra;
     sourcePixels=valNbEventPerXY;
-    for(int i=0;i<valNbEventPerXY.length;i++){
-      IJ.log(String.valueOf(valNbEventPerXY[i])+" pour i="+String.valueOf(i));
-    }
     imageProc = new FloatProcessor(resY+1,resX+1,valNbEventPerXY);
     startSpectra=start;
     endSpectra=end;
