@@ -70,8 +70,8 @@ public class ImageGenerated {
     Roi ipRoi = getRegularRoi();
     ADC adcToCalcFromRoi = new ADC();
     ADC sourceAdc = sourceSpectra.getADC();
-    int channelMin=sourceSpectra.getIndiceEnergy(startSpectra, false);
-    int channelMax=sourceSpectra.getIndiceEnergy(endSpectra, true);
+    int channelMin=sourceSpectra.getIndiceEnergy(startSpectra, false)+sourceSpectra.getChannelMin();
+    int channelMax=sourceSpectra.getIndiceEnergy(endSpectra, true)+sourceSpectra.getChannelMin();
     for (int nbEvt=0; nbEvt<sourceAdc.getNEvents(); nbEvt++){
       int[] currentEvt= sourceAdc.getEvent(nbEvt);
       int xPix = currentEvt[0];

@@ -38,38 +38,42 @@ public class Spectra {
   } 
   
   public Spectra(ADC adc, float energyMin, boolean startAtEnergMin) {
-      this(adc);
-      if (startAtEnergMin){
-        this.channelMinim=getIndiceEnergy(energyMin,false);
-        yEvt=Arrays.copyOfRange(yEvt, channelMinim, yEvt.length);
-      }
-      this.energyMin=energyMin;
-      IJ.log(String.valueOf(yEvt.length));
+    this(adc);
+    if (startAtEnergMin){
+      this.channelMinim=getIndiceEnergy(energyMin,false);
+      yEvt=Arrays.copyOfRange(yEvt, channelMinim, yEvt.length);
+    }
+    this.energyMin=energyMin;
+    IJ.log(String.valueOf(yEvt.length));
   }
   
   public Spectra(ADC adc,ImageGenerated imgGen, float energyMin, boolean startAtEnergMin) {
-      this(adc,energyMin,startAtEnergMin);
-      resX=imgGen.getWidth()-1;
-      resY=imgGen.getHeight()-1;
+    this(adc,energyMin,startAtEnergMin);
+    resX=imgGen.getWidth()-1;
+    resY=imgGen.getHeight()-1;
   }
 
   public ADC getADC (){
-      return adc;
+    return adc;
+  }
+  
+  public int getChannelMin(){
+      return channelMinim;
   }
   
   public boolean energyExist(float energy){
-      if (energy<energyMin)
-          return false;
-      float energyMax;
-      if (stepEnergy==null){
-          energyMax = energyMin + (yEvt.length-1) * 1;
-      }
-      else {
-          energyMax = energyMin + (yEvt.length-1) * stepEnergy;
-      }
-      if (energy>energyMax)
-          return false;
-      return true;
+    if (energy<energyMin)
+        return false;
+    float energyMax;
+    if (stepEnergy==null){
+        energyMax = energyMin + (yEvt.length-1) * 1;
+    }
+    else {
+        energyMax = energyMin + (yEvt.length-1) * stepEnergy;
+    }
+    if (energy>energyMax)
+        return false;
+    return true;
   }
   
   public void calibEnergy(float energyMin, float stepEnergy){
@@ -101,9 +105,9 @@ public class Spectra {
   }
   
   public XYPlotSp plotSpectra(String titleWindow, String titleGraph){
-      double[] xEnergies = convertFloatsToDoubles(getEnergies());
-      XYPlotSp plot1=new XYPlotSp(this,titleWindow,titleGraph,xEnergies,yEvt);
-      return plot1;//plot1.showVisible()
+    double[] xEnergies = convertFloatsToDoubles(getEnergies());
+    XYPlotSp plot1=new XYPlotSp(this,titleWindow,titleGraph,xEnergies,yEvt);
+    return plot1;//plot1.showVisible()
   }
 
   public int getIndiceEnergy(float energyToSearch,boolean rightIncluded){
