@@ -279,7 +279,14 @@ public class XYPlotSp extends JFrame {
                         catch(NumberFormatException e){
                             IJ.log("Mettez des chiffres dans les champs min et max");
                         }
-                        if (spectraDrew.energyExist(start) && spectraDrew.energyExist(end)){
+                        if (spectraDrew.energyExist(start) || spectraDrew.energyExist(end)){
+                            if (!spectraDrew.energyExist(start)){
+                                start=spectraDrew.getEnergies()[0];
+                            }
+                            else if(!spectraDrew.energyExist(end)) {
+                                int length = spectraDrew.getEnergies().length;
+                                end=spectraDrew.getEnergies()[length-1];
+                            }
                             nameOfImgGen.add(name.getText());
                             float[] tabMinMax = new float[2];
                             tabMinMax[0]=start;

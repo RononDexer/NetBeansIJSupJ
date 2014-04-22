@@ -4,14 +4,19 @@ import SupavisioJ.ImageGenerated.ImageGenerated;
 import SupavisioJ.Spectra.Spectra;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.ImageWindow;
+import ij.gui.YesNoCancelDialog;
+import ij.io.FileSaver;
+import ij.macro.Interpreter;
 import java.awt.Button;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.JFrame;
 
 public class CustomWindowImage extends ImageWindow implements ActionListener {
     
@@ -49,4 +54,35 @@ public class CustomWindowImage extends ImageWindow implements ActionListener {
                 ic.requestFocus();
         }
         
+        
+        public boolean close() { //code taken (in part) from ImageWindow
+		boolean isRunning = running || running2;
+		running = running2 = false;
+		boolean virtual = imp.getStackSize()>1 && imp.getStack().isVirtual();
+		if (isRunning) IJ.wait(500);
+		if (ij==null || IJ.getApplet()!=null || Interpreter.isBatchMode() || IJ.macroRunning() || virtual)
+			imp.changes = false;
+		if (imp.changes) {
+			String msg;
+			String name = imp.getTitle();
+			if (name.length()>22)
+				msg = "Save changes to\n" + "\"" + name + "\"?";
+			else
+				msg = "Save changes to \"" + name + "\"?";
+			YesNoCancelDialog d = new YesNoCancelDialog(this, "ImageJ", msg);
+			if (d.cancelPressed())
+				return false;
+			else if (d.yesPressed()) {
+				FileSaver fs = new FileSaver(imp);
+				if (!fs.save()) return false;
+			}
+		}
+		closed = true;
+		WindowManager.removeWindow(this);
+		setVisible(false);
+		if (ij!=null && ij.quitting())  // this may help avoid thread deadlocks
+			return true;
+		dispose();
+		return true;
+	}
     } // CustomWindow inner class

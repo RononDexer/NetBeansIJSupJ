@@ -22,7 +22,10 @@ public class Spectra {
   ADC adc;
   double[] yEvt;
   float energyMin=0;
+  int channelMinim=0;
   Float stepEnergy=null;//value of energy between two channels
+  int resX=0; // useful if Spectra generated from an ImageGenerated
+  int resY=0; // useful if Spectra generated from an ImageGenerated
         
   public Spectra(ADC adc) {
     this.adc=adc;
@@ -37,11 +40,17 @@ public class Spectra {
   public Spectra(ADC adc, float energyMin, boolean startAtEnergMin) {
       this(adc);
       if (startAtEnergMin){
-        int start=getIndiceEnergy(energyMin,false);
-        yEvt=Arrays.copyOfRange(yEvt, start, yEvt.length);
+        this.channelMinim=getIndiceEnergy(energyMin,false);
+        yEvt=Arrays.copyOfRange(yEvt, channelMinim, yEvt.length);
       }
       this.energyMin=energyMin;
       IJ.log(String.valueOf(yEvt.length));
+  }
+  
+  public Spectra(ADC adc,ImageGenerated imgGen, float energyMin, boolean startAtEnergMin) {
+      this(adc,energyMin,startAtEnergMin);
+      resX=imgGen.getWidth()-1;
+      resY=imgGen.getHeight()-1;
   }
 
   public ADC getADC (){
@@ -135,10 +144,12 @@ public class Spectra {
   }
   
   public ImageGenerated generatePicture(float start,float end){
-    int resX=searchMax("x");
-    int resY=searchMax("y");
-    int indMin= getIndiceEnergy(start,false);
-    int indMax= getIndiceEnergy(end,true);
+    if (resX==0)
+        resX=searchMax("x");
+    if (resY==0)
+        resY=searchMax("y");
+    int indMin= getIndiceEnergy(start,false)+channelMinim;
+    int indMax= getIndiceEnergy(end,true)+channelMinim;
     double[] valNbEventPerXY= new double[(resX+1)*(resY+1)];
     for (int i=0;i<adc.getNEvents();i++){
       int[] event=adc.getEvent(i);
@@ -151,12 +162,14 @@ public class Spectra {
   }
   
   public ImageGenerated[] generatePicture(float[][] startEnd){
-    int resX=searchMax("x");
-    int resY=searchMax("y");
+    if (resX==0)
+        resX=searchMax("x");
+    if (resY==0)
+        resY=searchMax("y");
     int[][] startEndInt = new int[startEnd.length][2];
     for(int i=0; i<startEnd.length;i++){
-        startEndInt[i][0]= getIndiceEnergy(startEnd[i][0],false);
-        startEndInt[i][1]= getIndiceEnergy(startEnd[i][1],true);
+        startEndInt[i][0]= getIndiceEnergy(startEnd[i][0],false)+channelMinim;
+        startEndInt[i][1]= getIndiceEnergy(startEnd[i][1],true)+channelMinim;
         IJ.log(String.valueOf(startEndInt[i][0])+" "+String.valueOf(startEndInt[i][1]));
     }
     double[][] valNbEventPerXY= new double[startEnd.length][(resX+1)*(resY+1)];

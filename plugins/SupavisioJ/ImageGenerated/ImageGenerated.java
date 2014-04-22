@@ -5,6 +5,7 @@ import SupavisioJ.Spectra.Spectra;
 import SupavisioJ.CustomWindowImage.CustomWindowImage;
 import ij.*;
 import ij.gui.ImageCanvas;
+import ij.gui.Roi;
 import ij.process.ImageProcessor;
 import ij.process.FloatProcessor;
 import lib.XYPlotSp;
@@ -21,7 +22,7 @@ import lib.XYPlotSp;
 public class ImageGenerated {
   Spectra sourceSpectra;
   double[] sourcePixels;
-  FloatProcessor imageProc;
+  ImageProcessor imageProc;
   float startSpectra;
   float endSpectra;//value of energy between two channels
   String title;
@@ -36,6 +37,14 @@ public class ImageGenerated {
     endSpectra=end;
   } 
   
+  public int getWidth(){
+      return imageProc.getWidth();
+  }
+          
+  public int getHeight(){
+      return imageProc.getHeight();
+  }
+  
   public void show(String title){
     this.title=title;
     show();
@@ -48,13 +57,17 @@ public class ImageGenerated {
     icOfImageGen.requestFocus();
   }
     
-  public ImageProcessor getRoi(){
+  public ImageProcessor getIrregularRoi(){
     return imgWindow.getImagePlus().getMask();
+  }
+  
+  public Roi getRegularRoi(){
+    return imgWindow.getImagePlus().getRoi();
   }
   
 
   public Spectra generateSpectraFromRoi(){
-    ImageProcessor impMaskRoi=getRoi();
+    Roi ipRoi = getRegularRoi();
     ADC adcToCalcFromRoi = new ADC();
     ADC sourceAdc = sourceSpectra.getADC();
     int channelMin=sourceSpectra.getIndiceEnergy(startSpectra, false);
@@ -64,11 +77,17 @@ public class ImageGenerated {
       int xPix = currentEvt[0];
       int yPix = currentEvt[1];
       int channelEnerPix = currentEvt[2];
-      if (impMaskRoi.getPixel(xPix,yPix)>0 && channelEnerPix>=channelMin && channelEnerPix<=channelMax){
+      if(ipRoi!=null){
+        if (ipRoi.contains(xPix,yPix) && channelEnerPix>=channelMin && channelEnerPix<=channelMax){
           adcToCalcFromRoi.addEvent(currentEvt);
-      }           
+        }
+      }
+      else{
+          IJ.log("Veuillez faire une sélection");
+          return null;
+      }
     }   
-    Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi,startSpectra,true);
+    Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi,this,startSpectra,true);
     return spectreNewCalc;
   }
   
