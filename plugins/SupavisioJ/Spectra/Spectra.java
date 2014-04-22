@@ -33,6 +33,16 @@ public class Spectra {
     }
     yEvt=Arrays.copyOfRange(yEvt, 0, i+1);
   } 
+  
+  public Spectra(ADC adc, float energyMin, boolean startAtEnergMin) {
+      this(adc);
+      if (startAtEnergMin){
+        int start=getIndiceEnergy(energyMin,false);
+        yEvt=Arrays.copyOfRange(yEvt, start, yEvt.length);
+      }
+      this.energyMin=energyMin;
+      IJ.log(String.valueOf(yEvt.length));
+  }
 
   public ADC getADC (){
       return adc;
@@ -52,7 +62,7 @@ public class Spectra {
           return false;
       return true;
   }
-    
+  
   public void calibEnergy(float energyMin, float stepEnergy){
     this.energyMin=energyMin;
     this.stepEnergy=stepEnergy;

@@ -43,14 +43,13 @@ public class ImageGenerated {
   
   public void show(){
     ImagePlus ipOfImageGen = new ImagePlus(title,imageProc);
-    imgWindow = new CustomWindowImage(ipOfImageGen);
+    imgWindow = new CustomWindowImage(ipOfImageGen,this);
     ImageCanvas icOfImageGen = imgWindow.getCanvas();
     icOfImageGen.requestFocus();
   }
     
   public ImageProcessor getRoi(){
-    ImageProcessor impMaskRoi=imageProc.getMask();
-    return impMaskRoi;
+    return imgWindow.getImagePlus().getMask();
   }
   
 
@@ -58,20 +57,18 @@ public class ImageGenerated {
     ImageProcessor impMaskRoi=getRoi();
     ADC adcToCalcFromRoi = new ADC();
     ADC sourceAdc = sourceSpectra.getADC();
+    int channelMin=sourceSpectra.getIndiceEnergy(startSpectra, false);
+    int channelMax=sourceSpectra.getIndiceEnergy(endSpectra, true);
     for (int nbEvt=0; nbEvt<sourceAdc.getNEvents(); nbEvt++){
       int[] currentEvt= sourceAdc.getEvent(nbEvt);
       int xPix = currentEvt[0];
       int yPix = currentEvt[1];
       int channelEnerPix = currentEvt[2];
-      int channelMin=sourceSpectra.getIndiceEnergy(startSpectra, false);
-      int channelMax=sourceSpectra.getIndiceEnergy(endSpectra, true);
-      if (impMaskRoi.get(xPix,yPix)>0 && channelEnerPix>channelMin && channelEnerPix<channelMax){
+      if (impMaskRoi.getPixel(xPix,yPix)>0 && channelEnerPix>=channelMin && channelEnerPix<=channelMax){
           adcToCalcFromRoi.addEvent(currentEvt);
       }           
     }   
-    Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi);
-    XYPlotSp plot = spectreNewCalc.plotSpectra("essai","essai2");
-    plot.showVisible();
+    Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi,startSpectra,true);
     return spectreNewCalc;
   }
   
