@@ -1,5 +1,6 @@
 package SupavisioJ.ConvertListFiles.listFiles;
 
+import SupavisioJ.ConvertListFiles.ADC.ADC;
 import java.io.*;
 import ij.*;
 import SupavisioJ.ConvertListFiles.MPA3.MPA3;
@@ -67,7 +68,7 @@ public class listFiles{
   }
 
   
-  public MPA3 readListFile(){
+  public MPA3 readListFile(int[] arrayOfActiveADC){
 	  MPA3 mpa=new MPA3();
 	  try{
 		  DataInputStream ips=new DataInputStream(new BufferedInputStream(new FileInputStream(path)));  
@@ -119,6 +120,11 @@ public class listFiles{
 							    for (int i=0;i<8;i++){
 							      tmtagPerADC[i+8]=checkBit(b[2],i);
 							    }
+                                                            for (int i=0;i<arrayOfActiveADC.length;i++){
+                                                                int indexOfADC = arrayOfActiveADC[i];
+                                                                ADC adcToComplete= mpa.getADC(indexOfADC);
+                                                                adcToComplete.addPeriod(tmtagPerADC[indexOfADC]);
+                                                            }
 							  break;
 						  }
 					  break;

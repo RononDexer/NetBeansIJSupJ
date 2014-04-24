@@ -18,6 +18,7 @@ private ArrayList<ArrayList<Integer>> map = new ArrayList<ArrayList<Integer>>();
 private	ArrayList<Integer> median = new ArrayList<Integer>();
 private ArrayList<Integer> roiMap = new ArrayList<Integer>();
 private ArrayList<ImagePlus> roiStack = new ArrayList<ImagePlus>();
+private	ArrayList<Integer> activationPeriods = new ArrayList<Integer>();
 
 private Integer sizeMapX=700;
 private Integer sizeMapY=700;
@@ -54,6 +55,20 @@ public int[] getlastEvent(){
 public int getNEvents(){
 	return eventList.size();
 }
+
+public int getActivationPeriod(int position){
+    return activationPeriods.get(position);
+}
+
+public int getNActivationPeriods(){
+    return activationPeriods.size();
+}
+
+public void addPeriod(int state){
+    activationPeriods.add(state);
+}
+
+
 /**
  * Calculates a 4096 channels spectra from an event list
  * @return Table containing 4096 values (double type)

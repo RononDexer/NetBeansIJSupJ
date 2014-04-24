@@ -330,9 +330,24 @@ public class ActionsC{
   * Process selected file in listFilesArray
   * @param indexOfFile Index of file in listFilesArray
   */
-  public void processFile(int indexOfFile){				
-                  
-                  MPA3 mpa=listFilesArray.get(indexOfFile).readListFile();
+  public void processFile(int indexOfFile){
+                  MPA3 mpa=listFilesArray.get(indexOfFile).readListFile(getActiveADCs());
+                  boolean debug = false;
+                  if (debug){
+                    int activeADCs[]=getActiveADCs();
+                    for (int i=0;i<activeADCs.length;i++){
+                        int indexOfAdc = activeADCs[i];
+                        int totPeriods= mpa.getADC(indexOfAdc).getNActivationPeriods();
+                        int inactivePeriodsCounter=0;
+                        for (int j=0;j<totPeriods;j++){
+                            if (mpa.getADC(indexOfAdc).getActivationPeriod(j)==0)
+                                inactivePeriodsCounter++;
+                        }
+                        float inactivePeriodsCounterfl=inactivePeriodsCounter;
+                        float tempsMort=inactivePeriodsCounterfl/totPeriods;
+                        IJ.log("les periodes d'activation de "+indexOfAdc+" temps mort = "+tempsMort);
+                    }
+                  }
                   for (int indexOfAdc=0;indexOfAdc<16;indexOfAdc++){
                           switch (flags[indexOfAdc]){
                           case 1: //RBS
@@ -369,6 +384,21 @@ public class ActionsC{
       for (int i=0;i<stimStack.getSize()+1;i++) stimStack.deleteLastSlice();
       
   }
+  
+  
+  public int[] getActiveADCs(){
+    ArrayList<Integer> listActivatedADCs = new ArrayList<Integer>();
+    for (int i=0;i<16;i++){
+        if (flags[i]!=6)
+            listActivatedADCs.add(i);
+    }
+    int[] arrayActivatedADCs = new int[listActivatedADCs.size()];
+    for (int i=0;i<listActivatedADCs.size();i++){
+        arrayActivatedADCs[i]=listActivatedADCs.get(i);
+    } 
+    return arrayActivatedADCs;
+  }
+  
   /**
   * Write a pixe spectra stack
   * @param path
