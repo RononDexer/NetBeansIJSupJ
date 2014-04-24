@@ -30,11 +30,13 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.plot.ValueMarker;
 
 public class XYPlotSp extends JFrame {
     
     private String titleGraph;
     private Spectra spectraDrew;
+    private JFreeChart chart;
     
     public XYPlotSp(Spectra spectraDrew, final String titleWindow,final String titleGraph2, double[] energiesX, double[] dataY) {
         super(titleWindow);
@@ -44,10 +46,19 @@ public class XYPlotSp extends JFrame {
         final XYDataset dataset = createDataset(energiesX,dataY);
         //create the chart
         final JFreeChart chart = createChart(dataset,titleGraph2);
+        this.chart = chart;
         final ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setMouseWheelEnabled(true);
         chartPanel.setPreferredSize(new Dimension(500, 270));
         initComponents(chartPanel);
+    }
+    
+    public Vector getVectButtonsSupp(){
+        return vectButtonsSupp;
+    }
+    
+    public JFreeChart getChart(){
+        return chart;
     }
     /**
      * Creates the dataset.
@@ -105,6 +116,7 @@ public class XYPlotSp extends JFrame {
         // change the auto tick unit selection to integer units only...
         final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        
         // OPTIONAL CUSTOMISATION COMPLETED.
         return chart;
     }
@@ -126,6 +138,7 @@ public class XYPlotSp extends JFrame {
             JComponent[] buttonsToAdd= new JComponent[4];
             JCheckBox jCheckBox1 = new JCheckBox();
             jCheckBox1.setText("NA");
+            jCheckBox1.addItemListener(new CheckBoxListenerSp(this));
             buttonsToAdd[0] = jCheckBox1;
             buttonsToAdd[1] = new JTextField();
             buttonsToAdd[2] = new JTextField();
@@ -260,42 +273,9 @@ public class XYPlotSp extends JFrame {
         // the whole is taken if JComp[0] is selected and 1,2 et 3 are corrects
         try {
             ImageGenerated[] tabImgGenFromSpectra;
-            ArrayList<String> nameOfImgGen = new ArrayList<String>();
-            ArrayList<float[]> minMaxSpectra = new ArrayList<float[]>();
-            for(int i=0; i<vectButtonsSupp.size();i++){
-                JComponent[] tabJCompToCheck = (JComponent[]) vectButtonsSupp.get(i);
-                JCheckBox checkBoxCurrent = (JCheckBox) tabJCompToCheck[0];
-                if(checkBoxCurrent.isSelected()){
-                    JTextField name= (JTextField) tabJCompToCheck[1];
-                    JTextField min= (JTextField) tabJCompToCheck[2];
-                    JTextField max=(JTextField) tabJCompToCheck[3];
-                    if(!(name.getText().equals("name") || min.getText().equals("min") || max.getText().equals("max"))){
-                        float start=-1;
-                        float end=-1;
-                        try {
-                            start = Float.valueOf(min.getText());
-                            end = Float.valueOf(max.getText());
-                        }
-                        catch(NumberFormatException e){
-                            IJ.log("Mettez des chiffres dans les champs min et max");
-                        }
-                        if (spectraDrew.energyExist(start) || spectraDrew.energyExist(end)){
-                            if (!spectraDrew.energyExist(start)){
-                                start=spectraDrew.getEnergies()[0];
-                            }
-                            else if(!spectraDrew.energyExist(end)) {
-                                int length = spectraDrew.getEnergies().length;
-                                end=spectraDrew.getEnergies()[length-1];
-                            }
-                            nameOfImgGen.add(name.getText());
-                            float[] tabMinMax = new float[2];
-                            tabMinMax[0]=start;
-                            tabMinMax[1]=end;
-                            minMaxSpectra.add(tabMinMax);
-                        }
-                    }
-                }
-            }
+            Vector vectValues = getValuesMinMaxNames(false,true);
+            ArrayList<String> nameOfImgGen = (ArrayList<String>) vectValues.get(0);
+            ArrayList<float[]> minMaxSpectra = (ArrayList<float[]>) vectValues.get(1);
             float[][] minMaxSpectraArray = minMaxSpectra.toArray(new float[minMaxSpectra.size()][2]);
             tabImgGenFromSpectra = spectraDrew.generatePicture(minMaxSpectraArray);
             for (int i=0;i<tabImgGenFromSpectra.length;i++){
@@ -303,6 +283,68 @@ public class XYPlotSp extends JFrame {
             }
         }
         catch(NullPointerException e){}
+    }
+    
+    
+    public ArrayList<JCheckBox> getCheckBoxSelected(){
+        ArrayList<JCheckBox> tabCheckBoxSelected = new ArrayList<JCheckBox>();
+        for(int i=0;i<vectButtonsSupp.size();i++){
+            JComponent[] tabJComp = (JComponent[]) vectButtonsSupp.get(i);
+            JCheckBox checkBoxCurrent = (JCheckBox) tabJComp[0];
+            if(checkBoxCurrent.isSelected()){
+                tabCheckBoxSelected.add(checkBoxCurrent);
+            }
+        }
+        return tabCheckBoxSelected;
+    }
+    
+    public Vector getValuesMinMaxNames(boolean minOrMax, boolean nameIsImportant){
+        ArrayList<String> nameOfImgGen = new ArrayList<String>();
+        ArrayList<float[]> minMaxSpectra = new ArrayList<float[]>();
+        for(int i=0; i<vectButtonsSupp.size();i++){
+            JComponent[] tabJCompToCheck = (JComponent[]) vectButtonsSupp.get(i);
+            JCheckBox checkBoxCurrent = (JCheckBox) tabJCompToCheck[0];
+            if(checkBoxCurrent.isSelected()){
+                JTextField name= (JTextField) tabJCompToCheck[1];
+                JTextField min= (JTextField) tabJCompToCheck[2];
+                JTextField max=(JTextField) tabJCompToCheck[3];
+                if(!( (min.getText().equals("Min") && max.getText().equals("Max")) )){
+                    if(minOrMax|| !((min.getText().equals("Min") || max.getText().equals("Max")))){
+                        if ( !nameIsImportant || !(name.getText().equals("Name")) ) {
+                            float start=-1;
+                            float end=-1;
+                            try {
+                                start = Float.valueOf(min.getText());
+                                end = Float.valueOf(max.getText());
+                            }
+                            catch(NumberFormatException e){
+                                IJ.log("Mettez des chiffres dans les champs min et max");
+                            }
+                            if(start<end){
+                                if (spectraDrew.energyExist(start) || spectraDrew.energyExist(end)){
+                                    if (!spectraDrew.energyExist(start)){
+                                        start=spectraDrew.getEnergies()[0];
+                                    }
+                                    else if(!spectraDrew.energyExist(end)) {
+                                        int length = spectraDrew.getEnergies().length;
+                                        end=spectraDrew.getEnergies()[length-1];
+                                    }
+                                    nameOfImgGen.add(name.getText());
+                                    float[] tabMinMax = new float[2];
+                                    tabMinMax[0]=start;
+                                    tabMinMax[1]=end;
+                                    minMaxSpectra.add(tabMinMax);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Vector vectToReturn = new Vector();
+        vectToReturn.add(nameOfImgGen);
+        vectToReturn.add(minMaxSpectra);
+        return vectToReturn;
     }
     
     private void jButtonLogLinActionPerformed(java.awt.event.ActionEvent evt) {                                         
@@ -315,5 +357,6 @@ public class XYPlotSp extends JFrame {
     private JButton jButtonPlus;
     private JButton jButtonGenImg;
     private JButton jButtonLogLin;
-    // End of variables declaration                   
+    // End of variables declaration               
 }
+
