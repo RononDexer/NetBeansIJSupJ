@@ -205,7 +205,6 @@ public class FrameC extends javax.swing.JFrame {
         jCheckBox10 = new javax.swing.JCheckBox();
         jCheckBox11 = new javax.swing.JCheckBox();
         jCheckBox12 = new javax.swing.JCheckBox();
-        jButton2 = new javax.swing.JButton();
 
         setTitle("CLF 3.0 (03/2014)");
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -1353,19 +1352,6 @@ public class FrameC extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(20, 10, 0, 0);
         jPanelA.add(jPanelC, gridBagConstraints);
 
-        jButton2.setText("Select and convert files");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(20, 10, 0, 0);
-        jPanelA.add(jButton2, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -1375,7 +1361,7 @@ public class FrameC extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+    
     private void jRadioButton40ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton40ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jRadioButton40ActionPerformed
@@ -1393,15 +1379,7 @@ public class FrameC extends javax.swing.JFrame {
             }*/
         }
     }//GEN-LAST:event_jCheckBox2ActionPerformed
-// Button 'Select and Convert files'
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        
-        act.reset();
-	act.setFlags(this);
-        act.selectFiles();
-	act.process();
-	java.lang.System.gc();
-    }//GEN-LAST:event_jButton2ActionPerformed
+
 // Flag for median map (21)
     private void jCheckBox6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox6ActionPerformed
         
@@ -1503,23 +1481,16 @@ public class FrameC extends javax.swing.JFrame {
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox12ActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-
-            public void run() {
-                new FrameC().setVisible(true);
-            }
-        });
-    }
-
-
-	    
+    public void openLST() {                                         
+        act.reset();
+	act.setFlags(this);
+        act.selectFiles();
+	act.process();
+	java.lang.System.gc();
+    }    
 
 	
-	ActionsC act=new ActionsC();
+    ActionsC act=new ActionsC();
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup10;
@@ -1537,7 +1508,6 @@ public class FrameC extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroup7;
     private javax.swing.ButtonGroup buttonGroup8;
     private javax.swing.ButtonGroup buttonGroup9;
-    private javax.swing.JButton jButton2;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JCheckBox jCheckBox10;
     private javax.swing.JCheckBox jCheckBox11;
