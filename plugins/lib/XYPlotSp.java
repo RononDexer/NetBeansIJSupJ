@@ -16,10 +16,11 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
+
 import ij.*;
 import java.awt.Dimension;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Vector;
 import javax.swing.GroupLayout;
@@ -27,10 +28,9 @@ import javax.swing.GroupLayout.ParallelGroup;
 import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.plot.ValueMarker;
 
 public class XYPlotSp extends JFrame {
     
@@ -169,6 +169,22 @@ public class XYPlotSp extends JFrame {
             }
         });
         
+        jButtonSave = new JButton();
+        jButtonSave.setText("Save");
+        jButtonSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSaveActionPerformed(evt);
+            }
+        });
+        
+        jButtonSaveGup = new JButton();
+        jButtonSaveGup.setText("Save Gupix");
+        jButtonSaveGup.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSaveGupActionPerformed(evt);
+            }
+        });
+        
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         
@@ -213,7 +229,11 @@ public class XYPlotSp extends JFrame {
         grpButton.addComponent(jButtonGenImg, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE);
         grpButton.addPreferredGap(ComponentPlacement.RELATED);
         grpButton.addComponent(jButtonLogLin, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE);
-        grpButton.addGap(155, 155, 155);
+        grpButton.addPreferredGap(ComponentPlacement.RELATED);
+        grpButton.addComponent(jButtonSave, GroupLayout.PREFERRED_SIZE, 90, GroupLayout.PREFERRED_SIZE);
+        grpButton.addPreferredGap(ComponentPlacement.RELATED);
+        grpButton.addComponent(jButtonSaveGup, GroupLayout.PREFERRED_SIZE, 125, GroupLayout.PREFERRED_SIZE);
+        grpButton.addGap(70,70,70);
         paralGroupHor.addGroup(GroupLayout.Alignment.TRAILING, grpButton);
         
         //Layout vertical 
@@ -242,6 +262,8 @@ public class XYPlotSp extends JFrame {
         grpButtons.addComponent(jButtonPlus, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
         grpButtons.addComponent(jButtonGenImg, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
         grpButtons.addComponent(jButtonLogLin, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
+        grpButtons.addComponent(jButtonSave, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
+        grpButtons.addComponent(jButtonSaveGup, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
         grpAll.addContainerGap(10, Short.MAX_VALUE).addGroup(grpButtons);
         grpAll.addGap(6, 6, 6);
       
@@ -315,12 +337,15 @@ public class XYPlotSp extends JFrame {
                             float end=-1;
                             try {
                                 start = Float.valueOf(min.getText());
-                                end = Float.valueOf(max.getText());
                             }
                             catch(NumberFormatException e){
                                 IJ.log("Mettez des chiffres dans les champs min et max");
                             }
-                            if(start<end){
+                            try {
+                                end = Float.valueOf(max.getText());
+                            }
+                            catch(NumberFormatException e){}
+                            if(minOrMax||start<end){
                                 if (spectraDrew.energyExist(start) || spectraDrew.energyExist(end)){
                                     if (!spectraDrew.energyExist(start)){
                                         start=spectraDrew.getEnergies()[0];
@@ -329,13 +354,26 @@ public class XYPlotSp extends JFrame {
                                         int length = spectraDrew.getEnergies().length;
                                         end=spectraDrew.getEnergies()[length-1];
                                     }
-                                    nameOfImgGen.add(name.getText());
-                                    float[] tabMinMax = new float[2];
-                                    tabMinMax[0]=start;
-                                    tabMinMax[1]=end;
-                                    minMaxSpectra.add(tabMinMax);
+                                    if( !nameIsImportant || !nameOfImgGen.contains(name.getText()) ){//useful to avoid saving problems
+                                        if( !nameIsImportant || !(name.getText().contains("_")) ){//useful to avoid restoring problems
+                                            nameOfImgGen.add(name.getText());
+                                            float[] tabMinMax = new float[2];
+                                            tabMinMax[0]=start;
+                                            tabMinMax[1]=end;
+                                            minMaxSpectra.add(tabMinMax);
+                                        }
+                                        else{
+                                            IJ.log("Le caractère \"_\" n'est pas autorisé");
+                                        }
+                                    }
+                                    else{
+                                        IJ.log("Donnez des titres différents pour chaque image svp");
+                                    }
                                 }
                             }
+                        }
+                        else {
+                            IJ.log("Donnez des noms svp (autres que Name)");
                         }
                     }
                 }
@@ -347,9 +385,42 @@ public class XYPlotSp extends JFrame {
         return vectToReturn;
     }
     
+    private String selectDirectory(){
+        File selectedFile = null;
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        int option = fileChooser.showDialog(null,"Choisir dossier");
+        if (option == JFileChooser.APPROVE_OPTION) {
+            selectedFile = fileChooser.getSelectedFile();
+             // if the user accidently click a file, then select the parent directory.
+            if (!selectedFile.isDirectory()) {
+                selectedFile = selectedFile.getParentFile();
+            }
+        }
+        if (selectedFile!=null)
+            return selectedFile.getAbsolutePath()+"/";
+        return null;
+    }
+    
     private void jButtonLogLinActionPerformed(java.awt.event.ActionEvent evt) {                                         
         // TODO afficher log ou lin l'axe des y
         IJ.log("fonctionnalité non codée pour le moment");
+    }
+    
+    private void jButtonSaveActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        String directory=selectDirectory();
+        if(directory!=null){
+            spectraDrew.save(directory);
+        }
+    }
+    
+    private void jButtonSaveGupActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        String directory=selectDirectory();
+        if(directory!=null){
+            String nameToSave=spectraDrew.getFileName()+".gup";
+            spectraDrew.getADC().saveGupixSpectra(directory+nameToSave);
+        }
     }
         
     // Variables declaration - do not modify 
@@ -357,6 +428,8 @@ public class XYPlotSp extends JFrame {
     private JButton jButtonPlus;
     private JButton jButtonGenImg;
     private JButton jButtonLogLin;
+    private JButton jButtonSave;
+    private JButton jButtonSaveGup;
     // End of variables declaration               
 }
 

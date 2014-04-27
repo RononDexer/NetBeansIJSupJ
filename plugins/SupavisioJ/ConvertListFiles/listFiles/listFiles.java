@@ -73,7 +73,8 @@ public class listFiles{
 	  try{
 		  DataInputStream ips=new DataInputStream(new BufferedInputStream(new FileInputStream(path)));  
 		  while(isReadingHeader(ips)){
-		      IJ.log("Reading header");
+		      ;
+                      //TODO : get useful informations from header as date or calibration
 		  }
 		  
 		  ips.readUnsignedByte();

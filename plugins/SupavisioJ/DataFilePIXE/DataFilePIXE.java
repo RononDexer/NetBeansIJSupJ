@@ -15,32 +15,38 @@ import SupavisioJ.DataFile.DataFile;
  * @author fbuga
  */
 public class DataFilePIXE extends DataFile {
-    private ADC adc=null;
+    private ADC adc=new ADC();
     
     public DataFilePIXE(String path){
       filePath=path;
     }
     
+    public String getDirectoryAndName(){
+        return filePath.substring(0,filePath.lastIndexOf("."));
+    }
+    
+    public String getName(){
+        int index=filePath.lastIndexOf("/")+1;
+        if (index==0)
+            index=filePath.lastIndexOf("\\")+1;
+        return filePath.substring(index,filePath.lastIndexOf("."));
+    }
+    
     public ADC open(){
-      ADC adc1=new ADC();
       DataInputStream ips=null;
       try{
-	ips=new DataInputStream(new BufferedInputStream(new FileInputStream(filePath)));  
-	while(true){
-          int[] evt = new int[3];
-	  evt[0]=ips.readShort();
-	  evt[1]=ips.readShort();
-	  evt[2]=ips.readInt();
-          adc1.addEvent(evt);
-	}
+	ips=new DataInputStream(new BufferedInputStream(new FileInputStream(filePath))); 
+        adc.restoreXYEListFile(ips);
       }
-      catch (Exception e){
+      catch (FileNotFoundException e){
+          IJ.log("fichier non trouvé ou erreur d'ouverture");
+      }
+      if(ips!=null){
         try{ips.close();}
-        catch (Exception IOError){
+        catch (IOException e2){
             IJ.log("Échec d'ouverture du fichier "+filePath);
         }
       }
-      this.adc=adc1;
-      return adc1;
+      return adc;
     }
 }

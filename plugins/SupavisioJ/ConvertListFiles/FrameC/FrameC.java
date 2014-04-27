@@ -1201,7 +1201,6 @@ public class FrameC extends javax.swing.JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanelC.add(jCheckBox3, gridBagConstraints);
 
-        jCheckBox4.setSelected(true);
         jCheckBox4.setText("SimNRA");
         jCheckBox4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1222,7 +1221,6 @@ public class FrameC extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(10, 5, 0, 0);
         jPanelC.add(jLabel18, gridBagConstraints);
 
-        jCheckBox5.setSelected(true);
         jCheckBox5.setText("STIM-J");
         jCheckBox5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1243,7 +1241,6 @@ public class FrameC extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(10, 5, 0, 0);
         jPanelC.add(jLabel19, gridBagConstraints);
 
-        jCheckBox6.setSelected(true);
         jCheckBox6.setText("STIM map");
         jCheckBox6.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1257,7 +1254,6 @@ public class FrameC extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 10);
         jPanelC.add(jCheckBox6, gridBagConstraints);
 
-        jCheckBox7.setSelected(true);
         jCheckBox7.setText("spectra");
         jCheckBox7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1278,7 +1274,6 @@ public class FrameC extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(10, 5, 0, 0);
         jPanelC.add(jLabel20, gridBagConstraints);
 
-        jCheckBox8.setSelected(true);
         jCheckBox8.setText("SupaVisio");
         jCheckBox8.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1292,7 +1287,6 @@ public class FrameC extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
         jPanelC.add(jCheckBox8, gridBagConstraints);
 
-        jCheckBox9.setSelected(true);
         jCheckBox9.setText("STIM stack");
         jCheckBox9.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1332,7 +1326,6 @@ public class FrameC extends javax.swing.JFrame {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.FIRST_LINE_START;
         jPanelC.add(jCheckBox11, gridBagConstraints);
 
-        jCheckBox12.setSelected(true);
         jCheckBox12.setText("STIM stack");
         jCheckBox12.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

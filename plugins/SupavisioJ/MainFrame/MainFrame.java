@@ -9,9 +9,19 @@ package SupavisioJ.MainFrame;
 import SupavisioJ.ConvertListFiles.ADC.ADC;
 import SupavisioJ.ConvertListFiles.FrameC.FrameC;
 import SupavisioJ.DataFilePIXE.DataFilePIXE;
+import SupavisioJ.FrameConfigSave.FrameConfigSave;
+import SupavisioJ.ImageGenerated.ImageGenerated;
 import SupavisioJ.Spectra.Spectra;
 import ij.IJ;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 
@@ -20,7 +30,11 @@ import javax.swing.JFileChooser;
  * @author vivien
  */
 public class MainFrame extends javax.swing.JFrame {
-    FrameC frameConfigLst = new FrameC();
+    private FrameC frameConfigLst = new FrameC();
+    private FrameConfigSave frameConfigSaveSession = new FrameConfigSave(this);
+    private ArrayList<Spectra> spectrasProduced = new ArrayList<Spectra>();
+    private boolean saveImagesOfSession = false;
+    private String nameOfApplication = "SupavisioJ";
 
     /**
      * Creates new form MainFrame
@@ -28,7 +42,11 @@ public class MainFrame extends javax.swing.JFrame {
     public MainFrame() {
         initComponents();
         this.setIconImage(new ImageIcon(getClass()
-                    .getResource("/SupavisioJ/ressources/images" + "/atome-16.png")).getImage());
+                .getResource("/SupavisioJ/ressources/images" + "/atome-16.png")).getImage());
+    }
+    
+    public void setSaveImg(boolean saveImg){
+        saveImagesOfSession=saveImg;
     }
 
     /**
@@ -45,6 +63,10 @@ public class MainFrame extends javax.swing.JFrame {
         jButtonOpenPixe = new javax.swing.JButton();
         jButtonParamLst = new javax.swing.JButton();
         jButtonParamPIXE = new javax.swing.JButton();
+        jButtonSaveSession = new javax.swing.JButton();
+        jButtonParamSaveSession = new javax.swing.JButton();
+        jButtonRestore = new javax.swing.JButton();
+        jButtonParamRestore = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("SupavisioJ");
@@ -79,6 +101,34 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
+        jButtonSaveSession.setText("Sauvegarder la session SpJ");
+        jButtonSaveSession.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonSaveSessionActionPerformed(evt);
+            }
+        });
+
+        jButtonParamSaveSession.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/ressources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamSaveSession.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonParamSaveSessionActionPerformed(evt);
+            }
+        });
+
+        jButtonRestore.setText("Restaurer fichiers/sessions");
+        jButtonRestore.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonRestoreActionPerformed(evt);
+            }
+        });
+
+        jButtonParamRestore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/ressources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamRestore.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonParamRestoreActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -97,7 +147,17 @@ public class MainFrame extends javax.swing.JFrame {
                         .addGap(49, 49, 49)
                         .addComponent(jButtonOpenPixe, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(jButtonParamPIXE, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jButtonParamPIXE, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(49, 49, 49)
+                        .addComponent(jButtonSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButtonParamSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(49, 49, 49)
+                        .addComponent(jButtonRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButtonParamRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(60, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -113,7 +173,15 @@ public class MainFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButtonOpenPixe)
                     .addComponent(jButtonParamPIXE, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(160, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jButtonSaveSession)
+                    .addComponent(jButtonParamSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jButtonRestore)
+                    .addComponent(jButtonParamRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(23, Short.MAX_VALUE))
         );
 
         pack();
@@ -128,39 +196,240 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonParamLstActionPerformed
 
     private void jButtonOpenPixeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenPixeActionPerformed
-        DataFilePIXE filePx=selectFilesPIXE();
-	ADC adcPIXE = filePx.open(); 
-        Spectra spectraPIXE= new Spectra(adcPIXE);
-        spectraPIXE.plotSpectra("SupavisioJ","Spectre PIXE").showVisible();
+        String path=selectFile();
+        DataFilePIXE filePx=new DataFilePIXE(path);
+        ADC adcPIXE = filePx.open(); 
+        if ( adcPIXE!=null && adcPIXE.getNEvents()>1 && (adcPIXE.getlastEvent()[0]!=0 && adcPIXE.getlastEvent()[1]!=0) ){
+            Spectra spectraPIXE= new Spectra(adcPIXE,filePx.getName());
+            if(spectraPIXE.getEnergies().length>1){
+                spectraPIXE.setParentWindow(this);
+                spectraPIXE.plotSpectra(nameOfApplication,"Spectre PIXE"+spectraPIXE.getFileName()).showVisible();
+            }
+        }
     }//GEN-LAST:event_jButtonOpenPixeActionPerformed
 
     private void jButtonParamPIXEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamPIXEActionPerformed
         IJ.log("Fonctionnalité non codée pour le moment");
     }//GEN-LAST:event_jButtonParamPIXEActionPerformed
 
-    private DataFilePIXE selectFilesPIXE(){
-        DataFilePIXE filePx=null;
+    private void jButtonSaveSessionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveSessionActionPerformed
+        if(spectrasProduced.size()>0){
+            String directory=selectDirectory();
+            ArrayList<String> nameSpectra = new ArrayList<String>();
+            ArrayList<String[]> nameImgGen = new ArrayList<String[]>();
+            if (directory!=null){
+                for(int i=0;i<spectrasProduced.size();i++){
+                    spectrasProduced.get(i).save(directory);
+                    String currentNameToSave = spectrasProduced.get(i).getNameToSave();
+                    if (!nameSpectra.contains(currentNameToSave)){
+                        nameSpectra.add(currentNameToSave);
+                        if(saveImagesOfSession){
+                            nameImgGen.add(spectrasProduced.get(i).saveAllImgGen(directory));
+                        }
+                    }
+                }
+                saveSession(directory,nameSpectra,nameImgGen);
+            }
+        }
+    }//GEN-LAST:event_jButtonSaveSessionActionPerformed
+
+    private void jButtonParamSaveSessionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamSaveSessionActionPerformed
+        frameConfigSaveSession.setVisible(true);
+    }//GEN-LAST:event_jButtonParamSaveSessionActionPerformed
+
+    private void jButtonRestoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRestoreActionPerformed
+        String[] paths = selectFiles();
+        for (String path : paths) {
+            if(path.contains("sess.spj")){
+                restoreSession(path);
+            }
+            else if(path.contains("spct.spj")){
+                Spectra spectToRestore = new Spectra(path,this);
+                spectToRestore.plotSpectra(nameOfApplication, "Spectre "+spectToRestore.getFileName()).showVisible();
+            }
+            else if(path.contains("img.spj")){
+                int index=path.lastIndexOf("/")+1;
+                if (index==0)
+                    index=path.lastIndexOf("\\")+1;
+                String nameSourceSpectra = path.substring(index,path.lastIndexOf("_"));
+                Spectra sourceSpectra=null;
+                for(int i=0; i<spectrasProduced.size(); i++){
+                    Spectra currentSpct = spectrasProduced.get(i);
+                    if (currentSpct.getFileName().equals(nameSourceSpectra)){
+                        sourceSpectra=currentSpct;
+                    }
+                }
+                if (sourceSpectra==null){
+                    String directory = path.substring(0, index);
+                    String nameToSave = nameSourceSpectra+".spct.spj";
+                    sourceSpectra=new Spectra(directory+nameToSave, this);
+                    sourceSpectra.plotSpectra(nameOfApplication, "Spectre "+sourceSpectra.getFileName());
+                }
+                sourceSpectra.restoreImgGen(path);
+            }
+        }
+    }//GEN-LAST:event_jButtonRestoreActionPerformed
+
+    private void jButtonParamRestoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamRestoreActionPerformed
+        IJ.log("Fonctionnalité non codée pour le moment");
+    }//GEN-LAST:event_jButtonParamRestoreActionPerformed
+
+    private void saveSession(String directory,ArrayList<String> nameSpectra,ArrayList<String[]> nameImgGen){
+        Calendar currentDate = Calendar.getInstance();
+        String year = String.valueOf(currentDate.get(Calendar.YEAR));
+        String month = String.valueOf(currentDate.get(Calendar.MONTH)+1);
+        String day = String.valueOf(currentDate.get(Calendar.DAY_OF_MONTH));
+        String hour = String.valueOf(currentDate.get(Calendar.HOUR_OF_DAY));
+        String min = String.valueOf(currentDate.get(Calendar.MINUTE));
+        String sec = String.valueOf(currentDate.get(Calendar.SECOND));
+        String fileName = day+"-"+month+"-"+year+"_"+hour+"h"+min+"m"+sec+"s.sess.spj";
+        String path = directory+fileName;
         try{
-          JFileChooser jF = new JFileChooser();//création dun nouveau filechosser
+            BufferedWriter buff = new BufferedWriter(new FileWriter(path,false));//Création du fichier si non existant et append=false si existant
+            for (int i=0;i<nameSpectra.size();i++){
+                buff.write(nameSpectra.get(i));
+                buff.write("\n");
+                if(saveImagesOfSession){
+                    for (int j=0;j<nameImgGen.get(i).length;j++){
+                        buff.write(nameImgGen.get(i)[j]);
+                        buff.write("\n");
+                    }
+                }
+            }
+            buff.flush();//on vide le cache du flux de sauvegarde
+            buff.close();//on ferme le flux/fichier     
+        }
+        catch(IOException e){
+            IJ.log("Echec de l'enregistrement de la session");
+        }
+    }
+    
+    private void restoreSession(String path){
+        try{
+            String[] readLines=readLinesFile(path);
+            int index=path.lastIndexOf("/")+1;
+            if (index==0)
+                index=path.lastIndexOf("\\")+1;
+            String directory=path.substring(0,index);
+            for (String readLine : readLines) {
+                if (readLine.contains("spct")){
+                    Spectra spectToRestore = new Spectra(directory+readLine,this);
+                    spectToRestore.plotSpectra(nameOfApplication, "Spectre "+spectToRestore.getFileName()).showVisible();
+                }
+                else if (readLine.contains("img")){
+                    Spectra sourceSpectra = spectrasProduced.get(spectrasProduced.size()-1);
+                    sourceSpectra.restoreImgGen(directory+readLine);
+                }
+            }
+            
+        }
+        catch(IOException e){}
+    }
+    
+    private String[] readLinesFile(String path)throws IOException{
+        BufferedReader buff=null;
+        ArrayList<String> arrayLines=new ArrayList<String>();
+        try {
+          buff=buff = new BufferedReader(new FileReader(path));//ouverture du fichier
+          for (int i=0;;i++) {//boucle infinie
+            String line = buff.readLine();
+            arrayLines.add(line);
+            if (line.equals(null) | line.equals("\n")){//fin du fichier peut provoquer NullPointerException
+              arrayLines.remove(arrayLines.size()-1);
+              buff.close();
+              break;
+            }
+          }
+        }	
+        catch(FileNotFoundException e){
+          IJ.log("Erreur. Fichier de sauvegarde non trouvé");
+        }
+        catch (NullPointerException e){//fin du fichier
+          arrayLines.remove(arrayLines.size()-1);
+          buff.close();
+        }
+        String[] tabLines =  new String[arrayLines.size()];//transformation du vecteur en []String plus facile à manipuler ensuite
+        for (int i=0;i<arrayLines.size();i++){
+          tabLines[i]= ((String)arrayLines.get(i));
+        }
+        return tabLines;
+    }
+    
+    private String selectFile(){
+        File selectedFile = null;
+        try{
+          JFileChooser jF = new JFileChooser();//création dun nouveau filechooser
           jF.setApproveButtonText("OK"); //intitulé du bouton
           jF.setMultiSelectionEnabled(false);
 
           jF.showOpenDialog(null); //affiche la boite de dialogue
 
-          File selectedFile = jF.getSelectedFile(); 
-          filePx=new DataFilePIXE(selectedFile.getAbsolutePath());
+          selectedFile = jF.getSelectedFile(); 
         }
         catch (Exception e){
           IJ.log("Erreur");
         }
-        return filePx;
+        if (selectedFile!=null)
+            return selectedFile.getAbsolutePath();
+        return null;        
     }
+    
+    private String[] selectFiles(){
+        File[] selectedFiles = null;
+        try{
+          JFileChooser jF = new JFileChooser();//création dun nouveau filechosser
+          jF.setApproveButtonText("OK"); //intitulé du bouton
+          jF.setMultiSelectionEnabled(true);
 
+          jF.showOpenDialog(null); //affiche la boite de dialogue
+
+          selectedFiles = jF.getSelectedFiles(); 
+        }
+        catch (Exception e){
+          IJ.log("Erreur");
+        }
+        String[] pathsToReturn = null;
+        if (selectedFiles!=null){
+            pathsToReturn = new String[selectedFiles.length];
+            for(int i=0;i<selectedFiles.length;i++){
+                pathsToReturn[i]=selectedFiles[i].getAbsolutePath();
+            }
+        }
+        return pathsToReturn; 
+    }
+    
+    private String selectDirectory(){
+        File selectedFile = null;
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        int option = fileChooser.showDialog(null,"Choisir dossier");
+        if (option == JFileChooser.APPROVE_OPTION) {
+            selectedFile = fileChooser.getSelectedFile();
+             // if the user accidently click a file, then select the parent directory.
+            if (!selectedFile.isDirectory()) {
+                selectedFile = selectedFile.getParentFile();
+            }
+        }
+        if (selectedFile!=null)
+            return selectedFile.getAbsolutePath()+"/";
+        return null;
+    }
+    
+    public void addSpectra(Spectra spectra){
+        spectrasProduced.add(spectra);
+    }
+    
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonOpenLst;
     private javax.swing.JButton jButtonOpenPixe;
     private javax.swing.JButton jButtonParamLst;
     private javax.swing.JButton jButtonParamPIXE;
+    private javax.swing.JButton jButtonParamRestore;
+    private javax.swing.JButton jButtonParamSaveSession;
+    private javax.swing.JButton jButtonRestore;
+    private javax.swing.JButton jButtonSaveSession;
     private javax.swing.JLabel jLabelAsk;
     // End of variables declaration//GEN-END:variables
 }

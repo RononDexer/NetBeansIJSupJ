@@ -345,7 +345,7 @@ public class ActionsC{
                         }
                         float inactivePeriodsCounterfl=inactivePeriodsCounter;
                         float tempsMort=inactivePeriodsCounterfl/totPeriods;
-                        IJ.log("les periodes d'activation de "+indexOfAdc+" temps mort = "+tempsMort);
+                        IJ.log("les périodes d'activation de "+indexOfAdc+" temps mort = "+tempsMort);
                     }
                   }
                   for (int indexOfAdc=0;indexOfAdc<16;indexOfAdc++){

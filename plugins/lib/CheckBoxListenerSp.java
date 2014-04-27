@@ -2,6 +2,7 @@ package lib;
 import ij.IJ;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Paint;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class CheckBoxListenerSp implements ItemListener{
      static ArrayList<int[]> colorList = new ArrayList<int[]>(); 
      static ArrayList<Float> lineDrewPositions = new ArrayList<Float>();
      static ArrayList<ValueMarker> lineDrewMarkers = new ArrayList<ValueMarker>();
+     static ArrayList<int[]> lineDrewColors = new ArrayList<int[]>();
 
    public CheckBoxListenerSp(XYPlotSp sourceXYPlotSp) {
       this.sourceXYPlotSp= sourceXYPlotSp;    
@@ -67,9 +69,9 @@ public class CheckBoxListenerSp implements ItemListener{
         if(!checkBoxList.contains(checkBoxCurrent)){
             int numberOfCall=0;
             while(!isNotTaken(r,g,b,numberOfCall)){
-                r=randInt(30,200);
-                g=randInt(50,255);
-                b=randInt(50,255);
+                r=randInt(100,200);
+                g=randInt(120,220);
+                b=randInt(120,220);
                 numberOfCall++;
             }
         }
@@ -94,19 +96,21 @@ public class CheckBoxListenerSp implements ItemListener{
         //draw vertical line 
         XYPlotOfChart.addDomainMarker(marker);
         
+        int[] colorToAdd = new int[3];
+        colorToAdd[0]=r;
+        colorToAdd[1]=g;
+        colorToAdd[2]=b;
         lineDrewPositions.add(position);
         lineDrewMarkers.add(marker);
+        lineDrewColors.add(colorToAdd);
+
         if (!checkBoxList.contains(checkBoxCurrent)){
             checkBoxList.add(checkBoxCurrent);
-            int[] colorToAdd = new int[3];
-            colorToAdd[0]=r;
-            colorToAdd[1]=g;
-            colorToAdd[2]=b;
-            colorList.add(colorToAdd);
+            colorList.add(colorToAdd);            
         }
     }
     
-    public void removeVerticalLine(float position,JCheckBox checkBoxCurrent, int numberOfCall){
+    public void removeVerticalLine(float position,JCheckBox checkBoxCurrent){
         JFreeChart chart=sourceXYPlotSp.getChart();
         XYPlot XYPlotOfChart = (XYPlot) chart.getPlot();
         //before remove : check if the vertical line is not the same for an other checkbox
@@ -134,6 +138,7 @@ public class CheckBoxListenerSp implements ItemListener{
         XYPlotOfChart.removeDomainMarker(marker);
         lineDrewPositions.remove(position);
         lineDrewMarkers.remove(marker);
+        lineDrewColors.remove(index);
         //commented code below : if you want to NOT keep the same color after coching/decoching one checkbox
         //if (numberOfCall==2){
         //    int index2 = checkBoxList.indexOf(checkBoxCurrent);
@@ -169,8 +174,32 @@ public class CheckBoxListenerSp implements ItemListener{
                             }
                             else {
                                 if(lineDrewPositions.contains(minMax)) {
-                                    removeVerticalLine(minMax,checkBoxCurrent,j+1);
+                                    removeVerticalLine(minMax,checkBoxCurrent);
                                 }
+                            }
+                        }
+                    }
+                }
+                if(!checkBoxCurrent.isSelected()){//last check : if min/max has been changed it can not be trust
+                    //so if all is good : no marker of the color of the checkBox remains
+                    int indexOfCheckBox = checkBoxList.indexOf(checkBoxCurrent);
+                    if (indexOfCheckBox!=-1){
+                        int[] colorRGBOfCheckBox=colorList.get(indexOfCheckBox);
+                        int r=colorRGBOfCheckBox[0];
+                        int g=colorRGBOfCheckBox[1];
+                        int b=colorRGBOfCheckBox[2];
+                        ArrayList<Integer> valToRemove= new ArrayList<Integer>();
+                        for(int j=0;j<lineDrewColors.size();j++){
+                            int[] colorToCheck = lineDrewColors.get(j);
+                            if (r==colorToCheck[0] && g==colorToCheck[1] && b==colorToCheck[2]){
+                                valToRemove.add(j);
+                            }
+                        }
+                        for(int j=0;j<valToRemove.size();j++){
+                            float positionToRemove= lineDrewPositions.get(valToRemove.get(j));
+                            removeVerticalLine(positionToRemove,checkBoxCurrent);
+                            for(int k=0;k<valToRemove.size();k++){
+                                valToRemove.set(k,valToRemove.get(k)-1);
                             }
                         }
                     }

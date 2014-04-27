@@ -1781,7 +1781,6 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBox4">
               <Properties>
-                <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="SimNRA"/>
               </Properties>
               <Events>
@@ -1805,7 +1804,6 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBox5">
               <Properties>
-                <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="STIM-J"/>
               </Properties>
               <Events>
@@ -1829,7 +1827,6 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBox6">
               <Properties>
-                <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="STIM map"/>
               </Properties>
               <Events>
@@ -1843,7 +1840,6 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBox7">
               <Properties>
-                <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="spectra"/>
               </Properties>
               <Events>
@@ -1867,7 +1863,6 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBox8">
               <Properties>
-                <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="SupaVisio"/>
               </Properties>
               <Events>
@@ -1881,7 +1876,6 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBox9">
               <Properties>
-                <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="STIM stack"/>
               </Properties>
               <Events>
@@ -1923,7 +1917,6 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBox12">
               <Properties>
-                <Property name="selected" type="boolean" value="true"/>
                 <Property name="text" type="java.lang.String" value="STIM stack"/>
               </Properties>
               <Events>

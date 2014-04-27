@@ -8,7 +8,10 @@ import ij.gui.ImageCanvas;
 import ij.gui.Roi;
 import ij.process.ImageProcessor;
 import ij.process.FloatProcessor;
-import lib.XYPlotSp;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -35,7 +38,7 @@ public class ImageGenerated {
     imageProc = new FloatProcessor(resY+1,resX+1,valNbEventPerXY);
     startSpectra=start;
     endSpectra=end;
-  } 
+  }
   
   public int getWidth(){
       return imageProc.getWidth();
@@ -50,8 +53,8 @@ public class ImageGenerated {
     show();
   }
   
-  public void show(){
-    ImagePlus ipOfImageGen = new ImagePlus(title,imageProc);
+  private void show(){
+    ImagePlus ipOfImageGen = new ImagePlus(sourceSpectra.getFileName()+"_"+title,imageProc);
     imgWindow = new CustomWindowImage(ipOfImageGen,this);
     ImageCanvas icOfImageGen = imgWindow.getCanvas();
     icOfImageGen.requestFocus();
@@ -67,28 +70,65 @@ public class ImageGenerated {
   
 
   public Spectra generateSpectraFromRoi(){
-    Roi ipRoi = getRegularRoi();
-    ADC adcToCalcFromRoi = new ADC();
-    ADC sourceAdc = sourceSpectra.getADC();
-    int channelMin=sourceSpectra.getIndiceEnergy(startSpectra, false)+sourceSpectra.getChannelMin();
-    int channelMax=sourceSpectra.getIndiceEnergy(endSpectra, true)+sourceSpectra.getChannelMin();
-    for (int nbEvt=0; nbEvt<sourceAdc.getNEvents(); nbEvt++){
-      int[] currentEvt= sourceAdc.getEvent(nbEvt);
-      int xPix = currentEvt[0];
-      int yPix = currentEvt[1];
-      int channelEnerPix = currentEvt[2];
-      if(ipRoi!=null){
-        if (ipRoi.contains(xPix,yPix) && channelEnerPix>=channelMin && channelEnerPix<=channelMax){
-          adcToCalcFromRoi.addEvent(currentEvt);
-        }
-      }
-      else{
-          IJ.log("Veuillez faire une sélection");
-          return null;
-      }
-    }   
-    Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi,this,startSpectra,true);
-    return spectreNewCalc;
+      Roi ipRoi = getRegularRoi();
+      ADC adcToCalcFromRoi = new ADC();
+      ADC sourceAdc = sourceSpectra.getADC();
+      int channelMin=sourceSpectra.getIndiceEnergy(startSpectra, false)+sourceSpectra.getChannelMin();
+      int channelMax=sourceSpectra.getIndiceEnergy(endSpectra, true)+sourceSpectra.getChannelMin();
+      for (int nbEvt=0; nbEvt<sourceAdc.getNEvents(); nbEvt++){
+          int[] currentEvt= sourceAdc.getEvent(nbEvt);
+          int xPix = currentEvt[0];
+          int yPix = currentEvt[1];
+          int channelEnerPix = currentEvt[2];
+          if(ipRoi!=null){
+              if (ipRoi.contains(xPix,yPix) && channelEnerPix>=channelMin && channelEnerPix<=channelMax){
+                  adcToCalcFromRoi.addEvent(currentEvt);
+              }
+          }
+          else{
+              IJ.log("Veuillez faire une sélection");
+              return null;
+          }
+      }   
+      String nameFile=sourceSpectra.getFileName();
+      Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi,nameFile,this,startSpectra,true);
+      spectreNewCalc.setLevel(sourceSpectra.getLevel()+1);
+      spectreNewCalc.setParentWindow(sourceSpectra.getParentWindow());
+      return spectreNewCalc;
   }
   
+  public String getNameToSave(){
+       return sourceSpectra.getFileName()+"_"+title+".img.spj";
+  }
+  
+  public void save(String directory){//directory : path to directory to save
+        DataOutputStream file=null;
+        String nameToSave = getNameToSave();
+        try {
+            file = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(directory+nameToSave)));
+            file.writeFloat(startSpectra);
+            file.writeFloat(endSpectra);
+            if( !(sourceSpectra.isSaved() && directory.equals(sourceSpectra.getDirectory())) ){
+                sourceSpectra.save(directory);
+            }
+        }
+        catch (IOException e) {
+            IJ.log("Echec de la sauvegarde");
+        }
+        finally {
+           try {
+               if(file != null) {
+                   file.close();
+               }
+           } 
+           catch (IOException e2) {
+               IJ.log("Echec de la sauvegarde");
+           }
+        } 
+  }
+   
+  public void saveAll(String directory){
+      sourceSpectra.saveAllImgGen(directory);
+  }        
+    
 }
