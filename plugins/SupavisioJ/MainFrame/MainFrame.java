@@ -8,7 +8,7 @@ package SupavisioJ.MainFrame;
 
 import SupavisioJ.ConvertListFiles.ADC.ADC;
 import SupavisioJ.ConvertListFiles.FrameC.FrameC;
-import SupavisioJ.DataFilePIXE.DataFilePIXE;
+import SupavisioJ.DataFileXYEList.DataFileXYEList;
 import SupavisioJ.FrameConfigSave.FrameConfigSave;
 import SupavisioJ.ImageGenerated.ImageGenerated;
 import SupavisioJ.Spectra.Spectra;
@@ -60,7 +60,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         jButtonOpenLst = new javax.swing.JButton();
         jLabelAsk = new javax.swing.JLabel();
-        jButtonOpenPixe = new javax.swing.JButton();
+        jButtonOpenXYEList = new javax.swing.JButton();
         jButtonParamLst = new javax.swing.JButton();
         jButtonParamPIXE = new javax.swing.JButton();
         jButtonSaveSession = new javax.swing.JButton();
@@ -80,10 +80,10 @@ public class MainFrame extends javax.swing.JFrame {
 
         jLabelAsk.setText("Que voulez-vous faire?");
 
-        jButtonOpenPixe.setText("Ouvrir un fichier .pixe");
-        jButtonOpenPixe.addActionListener(new java.awt.event.ActionListener() {
+        jButtonOpenXYEList.setText("Ouvrir un fichier format XYE");
+        jButtonOpenXYEList.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonOpenPixeActionPerformed(evt);
+                jButtonOpenXYEListActionPerformed(evt);
             }
         });
 
@@ -145,7 +145,7 @@ public class MainFrame extends javax.swing.JFrame {
                         .addComponent(jButtonParamLst, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(49, 49, 49)
-                        .addComponent(jButtonOpenPixe, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButtonOpenXYEList, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(jButtonParamPIXE, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
@@ -171,7 +171,7 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(jButtonParamLst, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButtonOpenPixe)
+                    .addComponent(jButtonOpenXYEList)
                     .addComponent(jButtonParamPIXE, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -195,18 +195,18 @@ public class MainFrame extends javax.swing.JFrame {
         frameConfigLst.setVisible(true);
     }//GEN-LAST:event_jButtonParamLstActionPerformed
 
-    private void jButtonOpenPixeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenPixeActionPerformed
+    private void jButtonOpenXYEListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenXYEListActionPerformed
         String path=selectFile();
-        DataFilePIXE filePx=new DataFilePIXE(path);
-        ADC adcPIXE = filePx.open(); 
-        if ( adcPIXE!=null && adcPIXE.getNEvents()>1 && (adcPIXE.getlastEvent()[0]!=0 && adcPIXE.getlastEvent()[1]!=0) ){
-            Spectra spectraPIXE= new Spectra(adcPIXE,filePx.getName());
-            if(spectraPIXE.getEnergies().length>1){
-                spectraPIXE.setParentWindow(this);
-                spectraPIXE.plotSpectra(nameOfApplication,"Spectre PIXE"+spectraPIXE.getFileName()).showVisible();
+        DataFileXYEList fileXYE=new DataFileXYEList(path);
+        ADC adcXYE = fileXYE.open(); 
+        if ( adcXYE!=null && adcXYE.getNEvents()>1 && (adcXYE.getlastEvent()[0]!=0 && adcXYE.getlastEvent()[1]!=0) ){
+            Spectra spectraXYE= new Spectra(adcXYE,fileXYE.getName());
+            if(spectraXYE.getEnergies().length>1){
+                spectraXYE.setParentWindow(this);
+                spectraXYE.plotSpectra(nameOfApplication,"Spectre PIXE"+spectraXYE.getFileName()).showVisible();
             }
         }
-    }//GEN-LAST:event_jButtonOpenPixeActionPerformed
+    }//GEN-LAST:event_jButtonOpenXYEListActionPerformed
 
     private void jButtonParamPIXEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamPIXEActionPerformed
         IJ.log("Fonctionnalité non codée pour le moment");
@@ -423,7 +423,7 @@ public class MainFrame extends javax.swing.JFrame {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonOpenLst;
-    private javax.swing.JButton jButtonOpenPixe;
+    private javax.swing.JButton jButtonOpenXYEList;
     private javax.swing.JButton jButtonParamLst;
     private javax.swing.JButton jButtonParamPIXE;
     private javax.swing.JButton jButtonParamRestore;

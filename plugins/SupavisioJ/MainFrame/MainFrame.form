@@ -38,7 +38,7 @@
                   </Group>
                   <Group type="102" attributes="0">
                       <EmptySpace min="-2" pref="49" max="-2" attributes="0"/>
-                      <Component id="jButtonOpenPixe" min="-2" pref="243" max="-2" attributes="0"/>
+                      <Component id="jButtonOpenXYEList" min="-2" pref="243" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="jButtonParamPIXE" min="-2" pref="30" max="-2" attributes="0"/>
                   </Group>
@@ -71,7 +71,7 @@
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jButtonOpenPixe" min="-2" max="-2" attributes="0"/>
+                  <Component id="jButtonOpenXYEList" min="-2" max="-2" attributes="0"/>
                   <Component id="jButtonParamPIXE" min="-2" pref="30" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
@@ -103,12 +103,12 @@
         <Property name="text" type="java.lang.String" value="Que voulez-vous faire?"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JButton" name="jButtonOpenPixe">
+    <Component class="javax.swing.JButton" name="jButtonOpenXYEList">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Ouvrir un fichier .pixe"/>
+        <Property name="text" type="java.lang.String" value="Ouvrir un fichier format XYE"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonOpenPixeActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonOpenXYEListActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="jButtonParamLst">

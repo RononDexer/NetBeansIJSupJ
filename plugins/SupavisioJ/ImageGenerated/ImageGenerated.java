@@ -81,7 +81,7 @@ public class ImageGenerated {
           int yPix = currentEvt[1];
           int channelEnerPix = currentEvt[2];
           if(ipRoi!=null){
-              if (ipRoi.contains(xPix,yPix) && channelEnerPix>=channelMin && channelEnerPix<=channelMax){
+              if (ipRoi.contains(xPix,yPix)){
                   adcToCalcFromRoi.addEvent(currentEvt);
               }
           }
