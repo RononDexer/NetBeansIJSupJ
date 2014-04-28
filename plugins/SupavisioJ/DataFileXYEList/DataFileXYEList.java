@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package SupavisioJ.DataFilePIXE;
+package SupavisioJ.DataFileXYEList;
 import java.util.ArrayList;
 import ij.*;
 import java.io.*;
@@ -14,10 +14,10 @@ import SupavisioJ.DataFile.DataFile;
  *
  * @author fbuga
  */
-public class DataFilePIXE extends DataFile {
+public class DataFileXYEList extends DataFile {
     private ADC adc=new ADC();
     
-    public DataFilePIXE(String path){
+    public DataFileXYEList(String path){
       filePath=path;
     }
     
