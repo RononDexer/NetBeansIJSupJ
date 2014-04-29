@@ -71,30 +71,30 @@ public class ImageGenerated {
 
   public Spectra generateSpectraFromRoi(){
       Roi ipRoi = getRegularRoi();
-      ADC adcToCalcFromRoi = new ADC();
-      ADC sourceAdc = sourceSpectra.getADC();
-      int channelMin=sourceSpectra.getIndiceEnergy(startSpectra, false)+sourceSpectra.getChannelMin();
-      int channelMax=sourceSpectra.getIndiceEnergy(endSpectra, true)+sourceSpectra.getChannelMin();
-      for (int nbEvt=0; nbEvt<sourceAdc.getNEvents(); nbEvt++){
-          int[] currentEvt= sourceAdc.getEvent(nbEvt);
-          int xPix = currentEvt[0];
-          int yPix = currentEvt[1];
-          int channelEnerPix = currentEvt[2];
-          if(ipRoi!=null){
+      if(ipRoi!=null){
+        ADC adcToCalcFromRoi = new ADC();
+        ADC sourceAdc = sourceSpectra.getADC();
+        int channelMin=sourceSpectra.getIndiceEnergy(startSpectra, false)+sourceSpectra.getChannelMin();
+        int channelMax=sourceSpectra.getIndiceEnergy(endSpectra, true)+sourceSpectra.getChannelMin();
+        for (int nbEvt=0; nbEvt<sourceAdc.getNEvents(); nbEvt++){
+            int[] currentEvt= sourceAdc.getEvent(nbEvt);
+            int xPix = currentEvt[0];
+            int yPix = currentEvt[1];
+            int channelEnerPix = currentEvt[2];
               if (ipRoi.contains(xPix,yPix)){
                   adcToCalcFromRoi.addEvent(currentEvt);
               }
-          }
-          else{
-              IJ.log("Veuillez faire une sélection");
-              return null;
-          }
-      }   
-      String nameFile=sourceSpectra.getFileName();
-      Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi,nameFile,this,startSpectra,true);
-      spectreNewCalc.setLevel(sourceSpectra.getLevel()+1);
-      spectreNewCalc.setParentWindow(sourceSpectra.getParentWindow());
-      return spectreNewCalc;
+        }   
+        String nameFile=sourceSpectra.getFileName();
+        Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi,nameFile,this);
+        spectreNewCalc.setLevel(sourceSpectra.getLevel()+1);
+        spectreNewCalc.setParentWindow(sourceSpectra.getParentWindow());
+        return spectreNewCalc;
+      }
+      else{
+          IJ.log("Veuillez faire une sélection");
+          return null;
+      }
   }
   
   public String getNameToSave(){

@@ -57,13 +57,19 @@ public class Spectra {
     yEvt=Arrays.copyOfRange(yEvt, 0, i+1);
   } 
   
-  public Spectra(ADC adc, String nameFile, float energyMin, boolean startAtEnergMin) {
+  public Spectra(ADC adc, String nameFile, float energyMin, boolean startAtEnergMin) {//to use if spectra don't begin at channel 0
     this(adc,nameFile);
     if (startAtEnergMin){
       this.channelMinim=getIndiceEnergy(energyMin,false);
       yEvt=Arrays.copyOfRange(yEvt, channelMinim, yEvt.length);
     }
     this.energyMin=energyMin;
+  }
+
+  public Spectra(ADC adc,String nameFile,ImageGenerated imgGen) {
+    this(adc,nameFile);
+    resX=imgGen.getWidth()-1;
+    resY=imgGen.getHeight()-1;
   }
   
   public Spectra(ADC adc,String nameFile,ImageGenerated imgGen, float energyMin, boolean startAtEnergMin) {
