@@ -203,7 +203,7 @@ public class MainFrame extends javax.swing.JFrame {
             Spectra spectraXYE= new Spectra(adcXYE,fileXYE.getName());
             if(spectraXYE.getEnergies().length>1){
                 spectraXYE.setParentWindow(this);
-                spectraXYE.plotSpectra(nameOfApplication,"Spectre PIXE"+spectraXYE.getFileName()).showVisible();
+                spectraXYE.plotSpectra(nameOfApplication,"Spectre "+spectraXYE.getFileName()).showVisible();
             }
         }
     }//GEN-LAST:event_jButtonOpenXYEListActionPerformed
