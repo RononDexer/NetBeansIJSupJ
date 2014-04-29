@@ -21,17 +21,6 @@ public class DataFileXYEList extends DataFile {
       filePath=path;
     }
     
-    public String getDirectoryAndName(){
-        return filePath.substring(0,filePath.lastIndexOf("."));
-    }
-    
-    public String getName(){
-        int index=filePath.lastIndexOf("/")+1;
-        if (index==0)
-            index=filePath.lastIndexOf("\\")+1;
-        return filePath.substring(index,filePath.lastIndexOf("."));
-    }
-    
     public ADC open(){
       DataInputStream ips=null;
       try{
