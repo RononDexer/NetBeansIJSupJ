@@ -27,14 +27,18 @@ public class CustomWindowImage extends ImageWindow implements ActionListener {
     private Button buttonSaveAll;
     private ImageGenerated selectedImage;
 
+    // constructor
     public CustomWindowImage(ImagePlus imp, ImageGenerated selectedImage) {
         super(imp);
         this.selectedImage = selectedImage;
         setLayout(new FlowLayout());
         addPanel();
     }
-
     
+    /**
+     * This method will add a panel containing buttons to the window
+     */
+    // panel with image and buttons layout type for the image generated window
     private void addPanel() {
         Panel panel = new Panel();
         panel.setLayout(new GridLayout(3,1));
@@ -55,15 +59,16 @@ public class CustomWindowImage extends ImageWindow implements ActionListener {
         Object b = e.getSource();
         if (b==buttonCalc) {
             Spectra spectraCalc=selectedImage.generateSpectraFromRoi();
-            spectraCalc.plotSpectra("SupavisioJ", "Spectre calculé "+spectraCalc.getFileName()).showVisible();
+            spectraCalc.plotSpectra("SupavisioJ", "Calculated spectra "+spectraCalc.getFileName()).showVisible();
         }
         if (b==buttonSave) {
+            // save selected image
             String directory=selectDirectory();
             if (directory!=null)
                 selectedImage.save(directory);
         }
         if (b==buttonSaveAll) {
-            //save all images generate from one spectra
+            //save all images generate from parent Spectra
             String directory=selectDirectory();
             if (directory!=null)
                 selectedImage.saveAll(directory);
@@ -81,7 +86,7 @@ public class CustomWindowImage extends ImageWindow implements ActionListener {
         int option = fileChooser.showDialog(null,"Choisir dossier");
         if (option == JFileChooser.APPROVE_OPTION) {
             selectedFile = fileChooser.getSelectedFile();
-             // if the user accidently click a file, then select the parent directory.
+             // if the user accidently clicks on a file,the parent directory is selected.
             if (!selectedFile.isDirectory()) {
                 selectedFile = selectedFile.getParentFile();
             }
@@ -91,7 +96,10 @@ public class CustomWindowImage extends ImageWindow implements ActionListener {
         return null;
     }
 
-    public boolean close() { //code taken (in part) from ImageWindow
+    /**
+     * This method overides the supermethod to avoid the imp=null present in the method of ImageWindow
+     */
+    public boolean close() { //code taken (partially) from ImageWindow
         boolean isRunning = running || running2;
         running = running2 = false;
         boolean virtual = imp.getStackSize()>1 && imp.getStack().isVirtual();

@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package SupavisioJ.MainFrame;
 
 import SupavisioJ.ConvertListFiles.ADC.ADC;
@@ -26,8 +20,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 
 /**
- *
- * @author vivien
+ *This class is the first window which will be open at the launch of SupavisioJ
  */
 public class MainFrame extends javax.swing.JFrame {
     private FrameC frameConfigLst = new FrameC();
@@ -42,7 +35,7 @@ public class MainFrame extends javax.swing.JFrame {
     public MainFrame() {
         initComponents();
         this.setIconImage(new ImageIcon(getClass()
-                .getResource("/SupavisioJ/ressources/images" + "/atome-16.png")).getImage());
+                .getResource("/SupavisioJ/resources/images" + "/atome-16.png")).getImage());
     }
     
     public void setSaveImg(boolean saveImg){
@@ -87,14 +80,14 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
-        jButtonParamLst.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/ressources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamLst.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
         jButtonParamLst.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonParamLstActionPerformed(evt);
             }
         });
 
-        jButtonParamPIXE.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/ressources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamPIXE.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
         jButtonParamPIXE.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonParamPIXEActionPerformed(evt);
@@ -108,7 +101,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
-        jButtonParamSaveSession.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/ressources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamSaveSession.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
         jButtonParamSaveSession.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonParamSaveSessionActionPerformed(evt);
@@ -122,7 +115,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
-        jButtonParamRestore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/ressources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamRestore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
         jButtonParamRestore.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonParamRestoreActionPerformed(evt);
@@ -199,9 +192,9 @@ public class MainFrame extends javax.swing.JFrame {
         String path=selectFile();
         DataFileXYEList fileXYE=new DataFileXYEList(path);
         ADC adcXYE = fileXYE.open(); 
-        if ( adcXYE!=null && adcXYE.getNEvents()>1 && (adcXYE.getlastEvent()[0]!=0 && adcXYE.getlastEvent()[1]!=0) ){
+        if ( adcXYE!=null && adcXYE.getNEvents()>1 && (adcXYE.getlastEvent()[0]!=0 && adcXYE.getlastEvent()[1]!=0) ){//check if a correct file has been open
             Spectra spectraXYE= new Spectra(adcXYE,fileXYE.getName());
-            if(spectraXYE.getEnergies().length>1){
+            if(spectraXYE.getEnergies().length>1){//check if a correct file has been open
                 spectraXYE.setParentWindow(this);
                 spectraXYE.plotSpectra(nameOfApplication,"Spectre "+spectraXYE.getFileName()).showVisible();
             }
@@ -209,7 +202,7 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonOpenXYEListActionPerformed
 
     private void jButtonParamPIXEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamPIXEActionPerformed
-        IJ.log("Fonctionnalité non codée pour le moment");
+        IJ.log("Pas de paramètres pour le moment");
     }//GEN-LAST:event_jButtonParamPIXEActionPerformed
 
     private void jButtonSaveSessionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveSessionActionPerformed
@@ -274,6 +267,13 @@ public class MainFrame extends javax.swing.JFrame {
         IJ.log("Fonctionnalité non codée pour le moment");
     }//GEN-LAST:event_jButtonParamRestoreActionPerformed
 
+    /**
+     * This method will save the session (meaning all Spectras produced since the launch) in the given directory.
+     * The ImageGenerated objects will be save if the user has changed the saving settings.
+     * @param directory absolute path to the directory where all files will be saved
+     * @param nameSpectra an arrayList of names of the saved Spectras
+     * @param nameImgGen an arrayList of names of the saved ImageGenerateds
+     */
     private void saveSession(String directory,ArrayList<String> nameSpectra,ArrayList<String[]> nameImgGen){
         Calendar currentDate = Calendar.getInstance();
         String year = String.valueOf(currentDate.get(Calendar.YEAR));
@@ -296,14 +296,18 @@ public class MainFrame extends javax.swing.JFrame {
                     }
                 }
             }
-            buff.flush();//on vide le cache du flux de sauvegarde
-            buff.close();//on ferme le flux/fichier     
+            buff.flush();   // buffer is released
+            buff.close();   // buffer & stream are closed.    
         }
         catch(IOException e){
             IJ.log("Echec de l'enregistrement de la session");
         }
     }
     
+    /**
+     * restore a file session (*.sess.spj) and all the files mentionned in this session
+     * @param path absolute path to the file session
+     */
     private void restoreSession(String path){
         try{
             String[] readLines=readLinesFile(path);
@@ -326,15 +330,19 @@ public class MainFrame extends javax.swing.JFrame {
         catch(IOException e){}
     }
     
+    /**
+     * Method to read a text file
+     * @return return an array containing the lines of file. "\n" has been removed.
+     */
     private String[] readLinesFile(String path)throws IOException{
         BufferedReader buff=null;
         ArrayList<String> arrayLines=new ArrayList<String>();
         try {
-          buff=buff = new BufferedReader(new FileReader(path));//ouverture du fichier
-          for (int i=0;;i++) {//boucle infinie
+          buff=buff = new BufferedReader(new FileReader(path));//file opening
+          for (int i=0;;i++) {
             String line = buff.readLine();
             arrayLines.add(line);
-            if (line.equals(null) | line.equals("\n")){//fin du fichier peut provoquer NullPointerException
+            if (line.equals(null) | line.equals("\n")){//end of the file can produced a NullPointerException
               arrayLines.remove(arrayLines.size()-1);
               buff.close();
               break;
@@ -344,17 +352,21 @@ public class MainFrame extends javax.swing.JFrame {
         catch(FileNotFoundException e){
           IJ.log("Erreur. Fichier de sauvegarde non trouvé");
         }
-        catch (NullPointerException e){//fin du fichier
+        catch (NullPointerException e){//end of the file
           arrayLines.remove(arrayLines.size()-1);
           buff.close();
         }
-        String[] tabLines =  new String[arrayLines.size()];//transformation du vecteur en []String plus facile à manipuler ensuite
+        String[] tabLines =  new String[arrayLines.size()];//convert arrayList to String[]
         for (int i=0;i<arrayLines.size();i++){
           tabLines[i]= ((String)arrayLines.get(i));
         }
         return tabLines;
     }
     
+    /**
+     * Method to select one and only one file
+     * @return the absolute path of the file
+     */
     private String selectFile(){
         File selectedFile = null;
         try{
@@ -374,6 +386,10 @@ public class MainFrame extends javax.swing.JFrame {
         return null;        
     }
     
+    /**
+     * Method to select one or several files
+     * @return array containing the absolute path of the files
+     */
     private String[] selectFiles(){
         File[] selectedFiles = null;
         try{
@@ -398,6 +414,11 @@ public class MainFrame extends javax.swing.JFrame {
         return pathsToReturn; 
     }
     
+    /**
+     * Method to select one and only one directory
+     * Files are showed to show context to the user but can not be selected
+     * @return the absolute path of the directory
+     */
     private String selectDirectory(){
         File selectedFile = null;
         JFileChooser fileChooser = new JFileChooser();
@@ -416,6 +437,9 @@ public class MainFrame extends javax.swing.JFrame {
         return null;
     }
     
+    /**
+     * Add a Spectra : useful for saving all the Spectras when saving a session 
+     */
     public void addSpectra(Spectra spectra){
         spectrasProduced.add(spectra);
     }

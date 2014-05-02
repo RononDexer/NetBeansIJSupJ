@@ -114,7 +114,7 @@
     <Component class="javax.swing.JButton" name="jButtonParamLst">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/SupavisioJ/ressources/images/avance-parametres-32.png"/>
+          <Image iconType="3" name="/SupavisioJ/resources/images/avance-parametres-32.png"/>
         </Property>
       </Properties>
       <Events>
@@ -124,7 +124,7 @@
     <Component class="javax.swing.JButton" name="jButtonParamPIXE">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/SupavisioJ/ressources/images/avance-parametres-32.png"/>
+          <Image iconType="3" name="/SupavisioJ/resources/images/avance-parametres-32.png"/>
         </Property>
       </Properties>
       <Events>
@@ -142,7 +142,7 @@
     <Component class="javax.swing.JButton" name="jButtonParamSaveSession">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/SupavisioJ/ressources/images/avance-parametres-32.png"/>
+          <Image iconType="3" name="/SupavisioJ/resources/images/avance-parametres-32.png"/>
         </Property>
       </Properties>
       <Events>
@@ -160,7 +160,7 @@
     <Component class="javax.swing.JButton" name="jButtonParamRestore">
       <Properties>
         <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/SupavisioJ/ressources/images/avance-parametres-32.png"/>
+          <Image iconType="3" name="/SupavisioJ/resources/images/avance-parametres-32.png"/>
         </Property>
       </Properties>
       <Events>

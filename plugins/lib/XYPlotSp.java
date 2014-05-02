@@ -32,6 +32,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
 
+/**
+ * Class XYPlotSp is the class representing the spectra management window
+ */
 public class XYPlotSp extends JFrame {
     
     private String titleGraph;
@@ -61,9 +64,8 @@ public class XYPlotSp extends JFrame {
         return chart;
     }
     /**
-     * Creates the dataset.
-     * 
-     * @return a sample dataset.
+     * Creates the dataset of the Spectra
+     * @returns a dataset.
      */
     private static XYDataset createDataset(double[] energiesX,double[] dataY) {
         final XYSeries series1 = new XYSeries("Spectre 1");
@@ -77,10 +79,8 @@ public class XYPlotSp extends JFrame {
     
     /**
      * Creates a chart.
-     * 
      * @param dataset  the data for the chart.
-     * 
-     * @return a chart.
+     * @returns a chart.
      */
     private static JFreeChart createChart(final XYDataset dataset, final String titleGraph2) {
         // create the chart...
@@ -121,6 +121,9 @@ public class XYPlotSp extends JFrame {
         return chart;
     }
     
+    /**
+     * Use this method to show the window to the user
+     */
     public void showVisible() {
         pack();
         RefineryUtilities.centerFrameOnScreen(this);
@@ -133,6 +136,10 @@ public class XYPlotSp extends JFrame {
         }
     }
     
+    /**
+     * This method will link each CheckBox to CheckBoxListenerSp
+     * @see CheckBoxListenerSp
+     */
     private void initComponents(ChartPanel chartPanel) {
         for(int i=0;i<3;i++){
             JComponent[] buttonsToAdd= new JComponent[4];
@@ -289,7 +296,7 @@ public class XYPlotSp extends JFrame {
     }   
     
     private void jButtonGenImgActionPerformed(java.awt.event.ActionEvent evt) {                                         
-        // TODO gen img for all checkbox selected
+        // gen img for all checkbox selected
         //First which case is selected
         // number of case = vectButtonsSupp.size()
         // the whole is taken if JComp[0] is selected and 1,2 et 3 are corrects
@@ -320,6 +327,12 @@ public class XYPlotSp extends JFrame {
         return tabCheckBoxSelected;
     }
     
+    /**
+     * Gets the min, max and name values if checkboxs are selected
+     * @param minOrMax if false min AND max have to be correct 
+     * @param nameIsImportant if false the method will not check the name
+     * @return a vector containing the arraylist of the names and the arraylist of the [min,max]
+     */
     public Vector getValuesMinMaxNames(boolean minOrMax, boolean nameIsImportant){
         ArrayList<String> nameOfImgGen = new ArrayList<String>();
         ArrayList<float[]> minMaxSpectra = new ArrayList<float[]>();
@@ -393,7 +406,7 @@ public class XYPlotSp extends JFrame {
         int option = fileChooser.showDialog(null,"Choisir dossier");
         if (option == JFileChooser.APPROVE_OPTION) {
             selectedFile = fileChooser.getSelectedFile();
-             // if the user accidently click a file, then select the parent directory.
+             // if the user accidently clicks on a file, the parent directory is selected.
             if (!selectedFile.isDirectory()) {
                 selectedFile = selectedFile.getParentFile();
             }
@@ -415,6 +428,9 @@ public class XYPlotSp extends JFrame {
         }
     }
     
+    /**
+     * @see ADC.saveGupixSpectra 
+     */
     private void jButtonSaveGupActionPerformed(java.awt.event.ActionEvent evt) {                                         
         String directory=selectDirectory();
         if(directory!=null){

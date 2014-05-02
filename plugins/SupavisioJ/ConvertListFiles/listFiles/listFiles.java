@@ -5,7 +5,12 @@ import java.io.*;
 import ij.*;
 import SupavisioJ.ConvertListFiles.MPA3.MPA3;
 
-
+/**
+* listFiles is the class representing an input file of type *.lst.
+* A file *.lst will contains a header, event tags and timer tags.
+* The timer tags allow to know when an ADC can receive a signal
+* The event tags indicate if ADCs have received a signal and information corresponding to follows
+*/
 
 public class listFiles{
   //declaration
@@ -22,7 +27,7 @@ public class listFiles{
   }
   /**
   * Constructor with initialization of pathname
-  * @param path Path of the file
+  * @param path absolute path of the file
   */
   public listFiles(String path){
     this.path=path;
@@ -30,8 +35,8 @@ public class listFiles{
 
   /**
   * Constructor with initialization of pathname
-  * @param X ADC index for scanning X
-  * @param Y ADC index for scanning Y
+  * @param adcIndexScanX the ADC index for scanning X
+  * @param adcIndexScanY the ADC index for scanning Y
   */
   public listFiles(int adcIndexScanX, int adcIndexScanY){
     this.adcIndexScanX=adcIndexScanX;
@@ -40,22 +45,20 @@ public class listFiles{
 
   /**
   * Constructor with initialization of pathname
-  * @param path Path of the file
-  * @param X ADC index for scanning X
-  * @param Y ADC index for scanning Y
-	  
+  * @param path absolute path of the file
+  * @param adcIndexScanX the ADC index for scanning X
+  * @param adcIndexScanY the ADC index for scanning Y	  
   */
   public listFiles(String path, int adcIndexScanX, int adcIndexScanY){
 	  this.path=path;
 	  this.adcIndexScanX=adcIndexScanX;
 	  this.adcIndexScanY=adcIndexScanY;
   }
-
-  /**
-  * Sorts a list file
-  * @return  A sorted list of MPA according to ADC
-  */
   
+  /**
+   * This method returns true if the reading has reached the end of the header
+   * @param ips the open file to check
+   */
   public boolean isReadingHeader(DataInputStream ips) throws Exception {
     boolean flag=true;
     //Discards header searching for '[Listdata]'
@@ -67,7 +70,11 @@ public class listFiles{
       return flag;
   }
 
-  
+  /**
+  * Sorts a list file
+  * @param arrayOfActiveADC contains the index of actives/functionning ADCs
+  * @returns  A MPA3 object containing a list of ADC. Each event is stored in its corresponding ADC
+  */  
   public MPA3 readListFile(int[] arrayOfActiveADC){
 	  MPA3 mpa=new MPA3();
 	  try{
@@ -116,7 +123,6 @@ public class listFiles{
 							    int[] tmtagPerADC=new int[16];
 							    for (int i=0;i<8;i++){
 							      tmtagPerADC[i]=checkBit(b[3],i);
-							      IJ.log(String.valueOf(tmtagPerADC[i]));
 							    }
 							    for (int i=0;i<8;i++){
 							      tmtagPerADC[i+8]=checkBit(b[2],i);
@@ -163,6 +169,12 @@ public class listFiles{
   public void setPath(String path){
 	  this.path=path;
   }
+  
+  /**
+   * This method return an absolute path. This method can be used if you want to save a file in the directory of the lst file
+   * @param ext An extension to add to the return String
+   * @return absolute path of the parent directory of the current file concatened with his name and a new extension
+   */
   public String setExtension(String ext){
 	  String name=getPath().substring(0,getPath().lastIndexOf("."));
 	  return name+"."+ext;
@@ -181,6 +193,13 @@ public class listFiles{
 	  if (thisByte>0x80) return true;
 	  else return false;
   }
+  
+  /**
+   * Use this method to know if an ADC is active
+   * @param thisByte byte to check
+   * @param position index of ADC to check (between 0 and 8)
+   * @return 0 or 1. 1 correspond to an active ADC.
+   */
   private int checkBit(int thisByte, int position){
 	  if (((thisByte>>position)&0x1)==1) return 1;
 	  else return 0;
@@ -199,7 +218,11 @@ public class listFiles{
   }
 
 
-  //Sorting and writing events
+  /**
+   * This method will write into the ADCs of the MPA3 the information concerning each event
+   * @param mpa object MPA3 to complete
+   * @param evt information coming from one event tag concerning all ADCs of the MPA3
+   */
   private int sortEvents(MPA3 mpa, int [] evt){
 	  int ct=0;
 	  for (int i=0;i<16;i++){

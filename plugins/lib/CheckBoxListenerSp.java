@@ -15,28 +15,33 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 
+/**
+ * CheckBoxListener is the class responsible for the events related
+ * with the checked / unchecked state of the checkboxes indicating the Min and Max spectra values.
+ * It will draw lines on the Spectra where the user has choosed energies
+ */
 public class CheckBoxListenerSp implements ItemListener{
      XYPlotSp sourceXYPlotSp;
      static ArrayList<JCheckBox> checkBoxList = new ArrayList<JCheckBox>();
-     static ArrayList<int[]> colorList = new ArrayList<int[]>(); 
+     static ArrayList<int[]> colorList = new ArrayList<int[]>(); //color corresponding to the checkboxes
      static ArrayList<Float> lineDrewPositions = new ArrayList<Float>();
      static ArrayList<ValueMarker> lineDrewMarkers = new ArrayList<ValueMarker>();
      static ArrayList<int[]> lineDrewColors = new ArrayList<int[]>();
 
    public CheckBoxListenerSp(XYPlotSp sourceXYPlotSp) {
       this.sourceXYPlotSp= sourceXYPlotSp;    
-    }
+   }
   
    public boolean isNotTaken(int r, int g,int b, int numberOfCall){
-        //check if the color is a good one
-        if (  g+b>(70*r/100) ) { //to avoid a red color
+        //checks if the generated color is available to be used as marker
+        if (  g+b>(70*r/100) ) { //to avoid the red color (similar to graph color)
             if(colorList.size()==0)
                 return true;
-            //check if the color is not already taken (or close of)
-            //choose a low treshold if numberOfCall is high
+            //checks if the color is not already taken (or close to it)
+            //chooses a low treshold if numberOfCall is high
             int treshold;
             if(numberOfCall>40){
-                treshold=1;//treshold=0 not possible with this code
+                treshold=1;
             }
             else if(numberOfCall>25){
                 treshold=5;
@@ -61,6 +66,11 @@ public class CheckBoxListenerSp implements ItemListener{
         return false;
    } 
    
+   /**
+    * this method uses a marker to draw a bouding line on the dispayed spectra's front layer.
+    * @param position
+    * @param checkBoxCurrent 
+    */
    public void drawVerticalLine(float position, JCheckBox checkBoxCurrent){
         // position is the value on the axis
         ValueMarker marker = new ValueMarker(position);
@@ -110,6 +120,11 @@ public class CheckBoxListenerSp implements ItemListener{
         }
     }
     
+    /**
+     * this method removes the marker used as bouding line on the dispayed spectra's front layer.
+     * @param position
+     * @param checkBoxCurrent 
+     */
     public void removeVerticalLine(float position,JCheckBox checkBoxCurrent){
         JFreeChart chart=sourceXYPlotSp.getChart();
         XYPlot XYPlotOfChart = (XYPlot) chart.getPlot();
@@ -139,7 +154,7 @@ public class CheckBoxListenerSp implements ItemListener{
         lineDrewPositions.remove(position);
         lineDrewMarkers.remove(marker);
         lineDrewColors.remove(index);
-        //commented code below : if you want to NOT keep the same color after coching/decoching one checkbox
+        //commented code below : if you want to NOT keep the same color after checking/unchecking one checkbox
         //if (numberOfCall==2){
         //    int index2 = checkBoxList.indexOf(checkBoxCurrent);
         //    colorList.remove(index2);
@@ -151,7 +166,9 @@ public class CheckBoxListenerSp implements ItemListener{
             drawVerticalLine(position, checkBoxSimilarValue);
         } 
     }
-   
+    /**
+     * This method is called each time that a checkbox is selected/unselected 
+     */
     public void itemStateChanged(ItemEvent e) {
         Vector vectButtons = sourceXYPlotSp.getVectButtonsSupp();
         for (int i=0;i<vectButtons.size();i++){
@@ -180,8 +197,8 @@ public class CheckBoxListenerSp implements ItemListener{
                         }
                     }
                 }
-                if(!checkBoxCurrent.isSelected()){//last check : if min/max has been changed it can not be trust
-                    //so if all is good : no marker of the color of the checkBox remains
+                if(!checkBoxCurrent.isSelected()){//last check up; if min/max has been changed, markers' colors need to be rechecked.
+                    // this checkbox = one color so it checks if markers of this color remain, they have to be removed.
                     int indexOfCheckBox = checkBoxList.indexOf(checkBoxCurrent);
                     if (indexOfCheckBox!=-1){
                         int[] colorRGBOfCheckBox=colorList.get(indexOfCheckBox);
@@ -208,6 +225,9 @@ public class CheckBoxListenerSp implements ItemListener{
         }
     }
     
+    /**
+     * @return a randomly generated number between min and max (max included)
+     */
     public static int randInt(int min, int max) {
         // Usually this can be a field rather than a method variable
         Random rand = new Random();

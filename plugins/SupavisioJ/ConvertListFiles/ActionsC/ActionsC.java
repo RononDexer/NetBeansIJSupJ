@@ -23,13 +23,13 @@ import java.util.Set;
 import javax.swing.JRadioButton;
 import javax.swing.JPanel;
 
-/** Methods management class
- * this class is used to process events
- * @author GD
- * @param listFileArray Raw list file as recorded during experiment (unsorted)
- * @param flags         Table containing values of buttons & checkbox in user interface
- * @param pixe_stack    Table containing a stack of pixe spectra as required for multiple detectors experiment
- * @param stimStack     Image stack containing all STIM map calculated at once during data treatment
+/** Management class
+ * This class is used to save pixe, stim and rbs files(DataFileXYEList)  after reading a lst file(ListFile)
+ * An object of this class is caracterized by : 
+ *      an array of the lst file to read (unsorted)
+ *      an array containing values of buttons & checkbox in user interface FrameC
+ *      a table containing a stack of pixe spectra as required for multiple detectors experiment
+ *      an image stack containing all STIM map calculated at once during data treatment
  */
 
 public class ActionsC{
@@ -48,40 +48,41 @@ public class ActionsC{
           initFlags();
           init_pixe_stack();
   }
+  
   /**
   * Gets ADC index for scanning X direction
   */
-    public int getAdcIndexScanX(){
+  public int getAdcIndexScanX(){
       int indexOfAdc=0;
       for (int i=0;i<16;i++){
           if (flags[i]==4) indexOfAdc=i;
       }
       return indexOfAdc;    
-      }
-    /**
+  }
+  
+  /**
   * Gets ADC index for scanning Y direction
   */
-    public int getAdcIndexScanY(){
+  public int getAdcIndexScanY(){
       int indexOfAdc=0;
       for (int i=0;i<16;i++){
           if (flags[i]==5) indexOfAdc=i;
       }
       return indexOfAdc;    
-      }
+  }
     
   /**
   * Displays a dialog box for user to select files to be processed (multiple selection possible)
   * Is used to modify the ArrayList listFilesArray
   */    
-  public void selectFiles(){
-          
+  public void selectFiles(){     
           try{
                   listFilesArray.clear();
-                  JFileChooser jF = new JFileChooser();//création dun nouveau filechosser
-                  jF.setApproveButtonText("OK"); //intitulé du bouton
+                  JFileChooser jF = new JFileChooser();  // a new filechosser is created
+                  jF.setApproveButtonText("OK");         // button title
                   jF.setMultiSelectionEnabled(true);
                   
-                  jF.showOpenDialog(null); //affiche la boite de dialogue
+                  jF.showOpenDialog(null);               // displays the dialog box
                   
                   File [] selectedFiles = jF.getSelectedFiles(); 
                           for (File f : selectedFiles){
@@ -120,7 +121,7 @@ public class ActionsC{
           setFlags(26,0); //pixe -map
   }
   /**
-  * Reset all flags for ADC to 0.
+  * Resets all flags for ADC to 0.
   */
   private void resetJbuttonFlags(){
           for (int i=0;i<16;i++) flags[i]=0;
@@ -144,19 +145,18 @@ public class ActionsC{
       }
   }
   /**
-  * Set value to selected flag
+  * Sets value to selected flag
       @param n index of the flag
       @param value value of the flag
       * */
   public  void setFlags(int n, int value){
-
       flags[n]=value;
   }
   /**
-  * Set values to flags after checking ADC status
+  * Sets values to flags after checking ADC status
   * flags 0 to 15 corresponding to ADC 1 to 16
-      @param f the frame containing components to be checked
-      * */
+  * @param f the frame containing components to be checked
+  */
   public void setFlags(FrameC f){
           resetJbuttonFlags();
           int nPanel=-1; //first panel found corresponding to adc will get index 0
@@ -258,7 +258,7 @@ public class ActionsC{
       if (flags[25]==1) fillStack(adc,lF); //displaying map
       if (flags[20]==1) adc.saveCountsSpectra(lF.setExtension("stim.asc")); // save spectra
       //save XYE list file
-      if (flags[27]==1) adc.saveXYEListFile(lF.setExtension("STIM"),(short)2);
+      if (flags[27]==1) adc.saveXYEListFile(lF.setExtension("STIM"),(short)2); // save stim
       else if (flags[16]==1) adc.saveXYEListFile(lF.setExtension("stim2"));
       //Output: display spectra
       if (flags[22]==1){
@@ -271,7 +271,7 @@ public class ActionsC{
       java.lang.System.gc();
   }
   /**
-  * add median map to stim stack
+  * This method adds median map to stim stack using
   * @param adc ADC to be added
   * @param lF name of the file
   */
@@ -287,14 +287,11 @@ public class ActionsC{
   }
 
   /**
-  * Process all files in listFilesArray according to their type (RBS, STIM or PIXE)
+  * Processes all files in listFilesArray according to their type (RBS, STIM or PIXE)
   */
-
   public void process(){				
           reset_pixe_stack();
           reset_stim_stack();
-          
-          
           
           for (int indexOfFile=0;indexOfFile<listFilesArray.size();indexOfFile++){
               
@@ -327,65 +324,68 @@ public class ActionsC{
   }
 
   /**
-  * Process selected file in listFilesArray
+  * Processes selected file in listFilesArray
   * @param indexOfFile Index of file in listFilesArray
   */
   public void processFile(int indexOfFile){
-                  MPA3 mpa=listFilesArray.get(indexOfFile).readListFile(getActiveADCs());
-                  boolean debug = false;
-                  if (debug){
-                    int activeADCs[]=getActiveADCs();
-                    for (int i=0;i<activeADCs.length;i++){
-                        int indexOfAdc = activeADCs[i];
-                        int totPeriods= mpa.getADC(indexOfAdc).getNActivationPeriods();
-                        int inactivePeriodsCounter=0;
-                        for (int j=0;j<totPeriods;j++){
-                            if (mpa.getADC(indexOfAdc).getActivationPeriod(j)==0)
-                                inactivePeriodsCounter++;
-                        }
-                        float inactivePeriodsCounterfl=inactivePeriodsCounter;
-                        float tempsMort=inactivePeriodsCounterfl/totPeriods;
-                        IJ.log("les périodes d'activation de "+indexOfAdc+" temps mort = "+tempsMort);
-                    }
-                  }
-                  for (int indexOfAdc=0;indexOfAdc<16;indexOfAdc++){
-                          switch (flags[indexOfAdc]){
-                          case 1: //RBS
-                                  processRBS(mpa.getADC(indexOfAdc),listFilesArray.get(indexOfFile), indexOfAdc);
-                                  break;
-                          case 2: //STIM
-                                  processSTIM(mpa.getADC(indexOfAdc),listFilesArray.get(indexOfFile), indexOfAdc);
-                                  break;
-                          case 3: //PIXE
-                                  if ((flags[17]==1)||(flags[16]==1)||(flags[22]==1)||(flags[24]==1)) processPIXE(mpa.getADC(indexOfAdc),listFilesArray.get(indexOfFile), indexOfAdc);
-                                  if (flags[18]==1) {
-                                      mpa.addToSum(indexOfAdc,16);
-                                      int lastPixeADCIndex=15;
-                                      while (flags[lastPixeADCIndex]!=3) lastPixeADCIndex-=1;
-                                      if (indexOfAdc==lastPixeADCIndex) processPIXE(mpa.getADC(16),listFilesArray.get(indexOfFile),16);
-                                  }
-                                  break;
-                          default: //other cases
-                                  break;
-                          }
-                  }
-                  java.lang.System.gc();
+        MPA3 mpa=listFilesArray.get(indexOfFile).readListFile(getActiveADCs());
+        boolean debug = false;
+        if (debug){
+          int activeADCs[]=getActiveADCs();
+          for (int i=0;i<activeADCs.length;i++){
+              int indexOfAdc = activeADCs[i];
+              int totPeriods= mpa.getADC(indexOfAdc).getNActivationPeriods();
+              int inactivePeriodsCounter=0;
+              for (int j=0;j<totPeriods;j++){
+                  if (mpa.getADC(indexOfAdc).getActivationPeriod(j)==0)
+                      inactivePeriodsCounter++;
+              }
+              float inactivePeriodsCounterfl=inactivePeriodsCounter;
+              float tempsMort=inactivePeriodsCounterfl/totPeriods;
+              IJ.log("les périodes d'activation de "+indexOfAdc+" temps mort = "+tempsMort);
           }
+        }
+        for (int indexOfAdc=0;indexOfAdc<16;indexOfAdc++){
+                switch (flags[indexOfAdc]){
+                case 1: //RBS
+                        processRBS(mpa.getADC(indexOfAdc),listFilesArray.get(indexOfFile), indexOfAdc);
+                        break;
+                case 2: //STIM
+                        processSTIM(mpa.getADC(indexOfAdc),listFilesArray.get(indexOfFile), indexOfAdc);
+                        break;
+                case 3: //PIXE
+                        if ((flags[17]==1)||(flags[16]==1)||(flags[22]==1)||(flags[24]==1)) processPIXE(mpa.getADC(indexOfAdc),listFilesArray.get(indexOfFile), indexOfAdc);
+                        if (flags[18]==1) {
+                            mpa.addToSum(indexOfAdc,16);
+                            int lastPixeADCIndex=15;
+                            while (flags[lastPixeADCIndex]!=3) lastPixeADCIndex-=1;
+                            if (indexOfAdc==lastPixeADCIndex) processPIXE(mpa.getADC(16),listFilesArray.get(indexOfFile),16);
+                        }
+                        break;
+                default: //other cases
+                        break;
+                }
+        }
+        java.lang.System.gc();
+  }
   /**
-  * Reset listFilesArray, list of files to be processed
+  * Resets listFilesArray, list of files to be processed
   */
   public void reset(){
           listFilesArray.clear();
   }
   /**
-  * Reset STIM image stack
+  * Resets STIM image stack
   */
   private void reset_stim_stack(){
       for (int i=0;i<stimStack.getSize()+1;i++) stimStack.deleteLastSlice();
       
   }
   
-  
+  /**
+   * Gets an arraylist containing the active ADCs 
+   * @return arrayActivatedADCs arraylist containing the active ADCs
+   */
   public int[] getActiveADCs(){
     ArrayList<Integer> listActivatedADCs = new ArrayList<Integer>();
     for (int i=0;i<16;i++){
@@ -400,7 +400,7 @@ public class ActionsC{
   }
   
   /**
-  * Write a pixe spectra stack
+  * Writes a pixe spectra stack
   * @param path
   * @param stack 
   */

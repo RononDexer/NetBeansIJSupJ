@@ -3,57 +3,50 @@ import java.util.ArrayList;
 import ij.*;
 import java.io.*;
 
-
 /**
  * This class is used to describe ADC and associated methods
- * ADC basically contains a list of events
- * @author GD
+ * ADC basically contains a list of events (an event : x,y,E)
  */
 
 public class ADC{
 
-    //declaration
-    private  ArrayList<int[]> eventList = new ArrayList<int[]>();
+    //components declaration
+    private ArrayList<int[]> eventList = new ArrayList<int[]>();
     private ArrayList<ArrayList<Integer>> map = new ArrayList<ArrayList<Integer>>();
-    private	ArrayList<Integer> median = new ArrayList<Integer>();
-    private ArrayList<Integer> roiMap = new ArrayList<Integer>();
-    private ArrayList<ImagePlus> roiStack = new ArrayList<ImagePlus>();
-    private	ArrayList<Integer> activationPeriods = new ArrayList<Integer>();
+    private ArrayList<Integer> median = new ArrayList<Integer>();
+    private ArrayList<Integer> activationPeriods = new ArrayList<Integer>();
 
     private Integer sizeMapX=700;
     private Integer sizeMapY=700;
 
-    //constructor
+    //ADC constructor
     public ADC(){
-            eventList.add(new int[3]);
-            median.add(0);
-            roiMap.add(0);
+        eventList.add(new int[3]);
+        median.add(0);
 
     }
-    //destructor
+    //ADC destructor
     public void finalize(){
     }
+    
     private void initializeMedianMap(){
-    for (int i=0;i<sizeMapX*sizeMapY+1;i++){
-                    map.add(new ArrayList<Integer>());
-                    map.get(i).add(0);
-            }
+        for (int i=0;i<sizeMapX*sizeMapY+1;i++){
+            map.add(new ArrayList<Integer>());
+            map.get(i).add(0);
+        }
     }
-    private void initializeRoiMap(){
-    roiMap.clear();
-    roiMap.trimToSize();
-    roiMap.add(0);
-    }
-    //getter
+    
+    //getter methods
     public int[] getEvent(int position){
-            return eventList.get(position);
+        return eventList.get(position);
     }
+    
     public int[] getlastEvent(){
-            return eventList.get(getNEvents()-1);
+        return eventList.get(getNEvents()-1);
     }
 
     public int getNEvents(){
-            return eventList.size();
+        return eventList.size();
     }
 
     public int getActivationPeriod(int position){
@@ -64,6 +57,7 @@ public class ADC{
         return activationPeriods.size();
     }
 
+    // adds the value of the activation state
     public void addPeriod(int state){
         activationPeriods.add(state);
     }
@@ -71,9 +65,9 @@ public class ADC{
 
     /**
      * Calculates a 4096 channels spectra from an event list
-     * @return Table containing 4096 values (double type)
+     * @return a Table containing 4096 values (double type)
      */
-    public double [] getSpectra(){
+    public double[] getSpectra(){
             int size=4096;
             double[] spectra=new double[size];
             try{
@@ -94,7 +88,7 @@ public class ADC{
     /**
      * Calculates a spectra from an event list
      * @param size size of spectra (number of channel) to be calculated
-     * @return spectra as a table containing [size] values
+     * @returns spectra as a table containing the [size] values
      */
     public double [] getSpectra(int size){
             double[] spectra=new double[size];
@@ -111,36 +105,36 @@ public class ADC{
             return spectra;
     }
     /**
-     * Return X-coordinate of event (X,Y,E)
+     * Returns X-coordinate of event (X,Y,E)
      * @param event Index in event list
-     * @return X-coordinate for this event
+     * @returns X-coordinate for this event
      */
     public int getX(int event){
             int [] XYE=getEvent(event);
             return XYE[0];
     }
     /**
-     * Return Y-coordinate of event (X,Y,E)
+     * Returns Y-coordinate of event (X,Y,E)
      * @param event Index in event list
-     * @return Y-coordinate for this event
+     * @returns Y-coordinate for this event
      */
     public int getY(int event){
             int [] XYE=getEvent(event);
             return XYE[1];
     }
     /**
-     * Return energy of event (X,Y,E)
+     * Returns energy of event (X,Y,E)
      * @param event Index in event list
-     * @return Energy for this event
+     * @returns Energy for this event
      */
     public int getE(int event){
             int [] XYE=getEvent(event);
             return XYE[2];
     }
     /**
-     * Get the median value stored in median energy array list
+     * Gets the median value stored in median energy arraylist
      * @param index index of arraylist
-     * @return median energy value
+     * @returns median energy value
      */
     public int getMedianValue(int index){
         return median.get(index);
@@ -149,7 +143,7 @@ public class ADC{
      * Gets the median energy value for the corresponding pixel on a 256-pixel-width map
      * @param x x-coordinate for pixel
      * @param y y-coordinate for pixel
-     * @return median energy corresponding to x,y coordinate
+     * @returns median energy corresponding to x,y coordinate
      */
     public int getMedianValue(int x, int y){
         return median.get(x+sizeMapX*y);
@@ -159,7 +153,7 @@ public class ADC{
      * @param x x-coordinate for pixel
      * @param y y-coordinate for pixel
      * @param sizeMapY Height of map in pixels
-     * @return median energy corresponding to x,y coordinate
+     * @returns median energy corresponding to x,y coordinate
      */
     public int getMedianValue(int x, int y, int sizeMapY){
         return median.get(x+sizeMapX*y);
@@ -168,7 +162,7 @@ public class ADC{
     //setter
 
     /**
-     * Append one event to the events list
+     * Appends one event to the events list
      * @param event (X,Y,E) to be added to the list
      */
     public void addEvent(int[] event){
@@ -177,7 +171,7 @@ public class ADC{
     //functions
 
     /**
-     * Save a spectra as a text file (1 column)
+     * Saves a spectra as a text file (1 column)
      * @param path filename for the spectra to be saved
      */
     public void saveCountsSpectra(String path){
@@ -193,7 +187,7 @@ public class ADC{
             }
     }
     /**
-     * Save a spectra in the Gupix format
+     * Saves a spectra in the Gupix format
      * @param path filename for spectra to be saved
      */
     public void saveGupixSpectra(String path){
@@ -210,7 +204,7 @@ public class ADC{
             }
     }
     /**
-     * Save spectra in 2 columns text file accounting for channel (1st) and counts
+     * Saves spectra in 2 columns text file accounting for channel (1st) and counts
      * @param path filename for text file
      */
     public void saveChannelCountsSpectra(String path){
@@ -227,24 +221,26 @@ public class ADC{
     }
     
     /**
-     * Save list data file binary format (short)X,(short)Y,(Integer)E
-     * @param ops stream where data will be saved
+     * Saves the ADC in a binary format (short)X,(short)Y,(Integer)E
+     * The file can be open with SupavisioJ (but not with the old Supavisio)
+     * @param ops stream where data will be saved. At the end of process ops will be closed.
      */
     public void saveXYEListFile(DataOutputStream ops){
             try{
                     for (int i=0;i<getNEvents();i++){
-                            ops.writeShort(getX(i));
-                            ops.writeShort(getY(i));
-                            ops.writeInt(getE(i));
+                            ops.writeShort(getX(i));   // stores the X point coordinate
+                            ops.writeShort(getY(i));   // stores the Y point coordinate
+                            ops.writeInt(getE(i));     // stores the Energy value in point
                     }
-                    ops.close();
+                    ops.close();                       // this closes the ops object
             }
             catch (IOException e){
             }
     }
     
     /**
-     * Save list data file binary format (short)X,(short)Y,(Integer)E
+     * Saves the ADC in a binary format (short)X,(short)Y,(Integer)E
+     * The file can be open with SupavisioJ (but not with the old Supavisio)
      * @param path filename for the datafile to be saved
      */
     public void saveXYEListFile(String path){
@@ -252,17 +248,18 @@ public class ADC{
                     DataOutputStream ops=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(path)));
 
                     for (int i=0;i<getNEvents();i++){
-                            ops.writeShort(getX(i));
-                            ops.writeShort(getY(i));
-                            ops.writeInt(getE(i));
+                            ops.writeShort(getX(i));   // stores the X point coordinate
+                            ops.writeShort(getY(i));   // stores the Y point coordinate
+                            ops.writeInt(getE(i));     // stores the Energy value in point
                     }
-                    ops.close();
+                    ops.close();                       // this closes the ops object
             }
             catch (Exception e){
             }
     }
     /**
-     * Save list data file in the supavisio format (see below)
+     * Saves the ADC in a file in the supavisio format (see below)
+     * The file can be open with the old Supavisio, not by SupavisioJ
      * @param path filename for the datafile to be saved
      * @param type type of data to be saved (see below)
      * supavisio is little endian type
@@ -280,17 +277,21 @@ public class ADC{
                     ops.writeShort(LittleEndian((short)255));
                     for (int i=1;i<getNEvents();i++){
                             if ( ((getX(i)-1) >=0)&((getY(i)-1)>=0)&(getE(i)>0) & getE(i)<4096  ){
-                                ops.writeShort(LittleEndian((short)(getX(i)-1)));
-                                ops.writeShort(LittleEndian((short)(getY(i)-1)));
-                                ops.writeShort(LittleEndian((short)getE(i)));
+                                ops.writeShort(LittleEndian((short)(getX(i)-1))); // stores the X point coordinate from ADC
+                                ops.writeShort(LittleEndian((short)(getY(i)-1))); // stores the X point coordinate from ADC
+                                ops.writeShort(LittleEndian((short)getE(i)));     // stores the Energy value in point from ADC
                             }
                     }
-                    ops.close();
+                    ops.close();              // this closes the ops object
             }
             catch (Exception e){
             }
     }
     
+    /**
+     * Restore the events(x,y,E) in the ADC if they was saved with saveXYEListFile
+     * @param ips stream to be read 
+     */
     public void restoreXYEListFile(DataInputStream ips){
         try{
            while(true){
@@ -305,16 +306,16 @@ public class ADC{
     }
     
     /**
-     * Method to convert short integer to little endian as required for supavisio reading
+     * Method to convert short integer to little endian as required for old supavisio reading
      * @param v integer to be converted
-     * @return v as little endian
+     * @returns v as little endian
      */
     private int LittleEndian (short v){
         return ((v>>8)|(v<<8));
     }
     /**
-     * Sort event according to X,Y and process median energy map
-     * @return median, a list of integer corresponding to median energy in pixel
+     * Sorts events according to X,Y and processes median energy map
+     * @returns median, a list of integers corresponding to median energy in pixel
      */
 
     public ArrayList<Integer> medianSort(){
@@ -343,7 +344,7 @@ public class ADC{
     }
 
     /**
-     * Save median map as a 2D text file
+     * Saves median map as a 2D text file using given path
      * @param path filename for 2D text file
      */
     public void saveMedianTextImage(String path){
@@ -357,7 +358,7 @@ public class ADC{
                             }
                             out.println(line);
                     }
-                    out.close();
+                    out.close();                  
             }
             catch (Exception e){
             }

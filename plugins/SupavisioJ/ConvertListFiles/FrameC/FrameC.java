@@ -1,21 +1,10 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/*
- * FrameC.java
- *
- * Created on 8 juin 2011, 16:41:16
- */
 package SupavisioJ.ConvertListFiles.FrameC;
 
 import SupavisioJ.ConvertListFiles.ActionsC.ActionsC;
 import javax.swing.AbstractButton;
 
 /**
- *
- * @author GD
+ * This class is the frame to configure the settings when opening a lst file
  */
 public class FrameC extends javax.swing.JFrame {
 
@@ -621,11 +610,6 @@ public class FrameC extends javax.swing.JFrame {
 
         buttonGroup7.add(jRadioButton40);
         jRadioButton40.setSelected(true);
-        jRadioButton40.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton40ActionPerformed(evt);
-            }
-        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
@@ -1354,13 +1338,8 @@ public class FrameC extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
-    private void jRadioButton40ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton40ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jRadioButton40ActionPerformed
-// flag for button PIXE-singles (17)
+    // flag for button PIXE-singles (17)
     private void jCheckBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox2ActionPerformed
-        
         int flag=17;
         AbstractButton AB = (AbstractButton) evt.getSource();
         if (AB.getModel().isSelected()) act.setFlags(flag,1);
@@ -1373,87 +1352,74 @@ public class FrameC extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jCheckBox2ActionPerformed
 
-// Flag for median map (21)
+    // Flag for median map (21)
     private void jCheckBox6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox6ActionPerformed
-        
         int flag=21;
         AbstractButton AB = (AbstractButton) evt.getSource();
 	if (AB.getModel().isSelected()) act.setFlags(flag,1);
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox6ActionPerformed
-// Set flag for sorting events (16)
+    // Set flag for sorting events (16)
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
-        
         int flag=16;
         AbstractButton AB = (AbstractButton) evt.getSource();
         if (AB.getModel().isSelected()) act.setFlags(flag,1);
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox1ActionPerformed
-// Checkbox Sum PIXE spectra (18)
+    // Checkbox Sum PIXE spectra (18)
     private void jCheckBox3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox3ActionPerformed
-        
         int flag=18;
         AbstractButton AB = (AbstractButton) evt.getSource();
 	if (AB.getModel().isSelected()) act.setFlags(flag,1);
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox3ActionPerformed
-// SimNRA (19)
+    // SimNRA (19)
     private void jCheckBox4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox4ActionPerformed
-      
         int flag=19;
         AbstractButton AB = (AbstractButton) evt.getSource();
 	if (AB.getModel().isSelected()) act.setFlags(flag,1);
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox4ActionPerformed
-// STIM-J (20)
+    // STIM-J (20)
     private void jCheckBox5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox5ActionPerformed
-        
         int flag=20;
         AbstractButton AB = (AbstractButton) evt.getSource();
 	if (AB.getModel().isSelected()) act.setFlags(flag,1);
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox5ActionPerformed
-// SupaVisio readable (XYE) listfiles type (27)
+    // SupaVisio readable (XYE) listfiles type (27)
     private void jCheckBox8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox8ActionPerformed
-        
         int flag=27;
         AbstractButton AB = (AbstractButton) evt.getSource();
 	if (AB.getModel().isSelected()) act.setFlags(flag,1);
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox8ActionPerformed
-// Display spectra (22)
+    // Display spectra (22)
     private void jCheckBox7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox7ActionPerformed
-       
         int flag=22;
         AbstractButton AB = (AbstractButton) evt.getSource();
 	if (AB.getModel().isSelected()) act.setFlags(flag,1);
-	else act.setFlags(flag,0);
-        
+	else act.setFlags(flag,0);        
     }//GEN-LAST:event_jCheckBox7ActionPerformed
-// Display STIM map (23)
+    // Display STIM map (23)
     private void jCheckBox9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox9ActionPerformed
-        
         int flag=23;
         AbstractButton AB = (AbstractButton) evt.getSource();
 	if (AB.getModel().isSelected()) act.setFlags(flag,1);
-	else act.setFlags(flag,0);
-        
+	else act.setFlags(flag,0);        
     }//GEN-LAST:event_jCheckBox9ActionPerformed
-// PIXE map calculation (26)
+    // PIXE map calculation (26)
     private void jCheckBox10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox10ActionPerformed
-
         int flag=26;
         AbstractButton AB = (AbstractButton) evt.getSource();
         if (AB.getModel().isSelected()) {
             act.setFlags(flag,1);
             
         }
-	else act.setFlags(flag,0);
-        
+	else act.setFlags(flag,0);        
     }//GEN-LAST:event_jCheckBox10ActionPerformed
-// Checkbox for pixe stack (24)
+    // Checkbox for pixe stack (24)
     private void jCheckBox11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox11ActionPerformed
-       
         int flag=24;
         AbstractButton AB = (AbstractButton) evt.getSource();
 	if (AB.getModel().isSelected()){
@@ -1465,15 +1431,16 @@ public class FrameC extends javax.swing.JFrame {
         }
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox11ActionPerformed
-// STIM map stack calculation (25)
+    // STIM map stack calculation (25)
     private void jCheckBox12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox12ActionPerformed
-
         int flag=25;
         AbstractButton AB = (AbstractButton) evt.getSource();
 	if (AB.getModel().isSelected()) act.setFlags(flag,1);
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox12ActionPerformed
-
+    /**
+     * This method is used to open a lst file and will save the resulting pixe, rbs or stim file
+     */
     public void openLST() {                                         
         act.reset();
 	act.setFlags(this);
@@ -1483,7 +1450,7 @@ public class FrameC extends javax.swing.JFrame {
     }    
 
 	
-    ActionsC act=new ActionsC();
+    private ActionsC act=new ActionsC();
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup10;

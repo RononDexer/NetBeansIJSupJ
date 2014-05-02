@@ -18,15 +18,9 @@ import javax.swing.JFrame;
 import lib.XYPlotSp;
 
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- *
- * @author Administrator
+ * Class Spectra responsible for generating a spectra object using
+ * an ADC object, and optionally the boundary energy values.
  */
 public class Spectra {
   private ADC adc;
@@ -42,10 +36,20 @@ public class Spectra {
   private MainFrame parentWindow;
   private ArrayList<ImageGenerated> imgsGenProduced = new ArrayList<ImageGenerated>();
   
+  
+  /**
+   * This constructor is used to restore a Spectra from a path
+   * @param path
+   * @param parentWindow 
+   */
   public Spectra(String path, MainFrame parentWindow){ //useful for restoring
       restore(path,parentWindow);
   }
   
+  /**
+   * This is the basic constructor when you want create a Spectra from an ADC
+   * @param nameFile name of the file (ex : "name".pixe (or an other extension) contains the ADC information)
+   */
   public Spectra(ADC adc,String nameFile) {
     this.adc=adc;
     this.nameFile=nameFile;
@@ -57,6 +61,12 @@ public class Spectra {
     yEvt=Arrays.copyOfRange(yEvt, 0, i+1);
   } 
   
+  // constructor with an ADC, a float value for lower energy delimiter and
+  // a boolean to retrieve the energy value
+  /**
+   * Use this constructor if the Spectra don't start at the channel 0
+   * @param startAtEnergMin if true the first channel is adjusted 
+   */
   public Spectra(ADC adc, String nameFile, float energyMin, boolean startAtEnergMin) {//to use if spectra don't begin at channel 0
     this(adc,nameFile);
     if (startAtEnergMin){
@@ -65,19 +75,26 @@ public class Spectra {
     }
     this.energyMin=energyMin;
   }
-
+  
+ /**
+  * Use this constructor if the Spectra is generated from an ImageGenerated
+  */
   public Spectra(ADC adc,String nameFile,ImageGenerated imgGen) {
     this(adc,nameFile);
     resX=imgGen.getWidth()-1;
     resY=imgGen.getHeight()-1;
   }
   
+  /**
+   * Use this constructor if the Spectra is generated from an ImageGenerated and don't start at the channel 0
+   */
   public Spectra(ADC adc,String nameFile,ImageGenerated imgGen, float energyMin, boolean startAtEnergMin) {
     this(adc,nameFile,energyMin,startAtEnergMin);
     resX=imgGen.getWidth()-1;
     resY=imgGen.getHeight()-1;
   }
-
+  
+  // getters & setters
   public ADC getADC (){
     return adc;
   }
@@ -95,6 +112,7 @@ public class Spectra {
   public int getChannelMin(){
       return channelMinim;
   }
+  
   
   public boolean isSaved(){
       return directory!=null;
@@ -117,6 +135,12 @@ public class Spectra {
       return parentWindow;
   }
   
+  // this method returns true if energy vaue is within boundries
+  /**
+   * Use this method to check if an energy exists in the Spectra
+   * @param energy the energy to check
+   * @return true if the energy exists.
+   */
   public boolean energyExist(float energy){
     if (energy<energyMin)
         return false;
@@ -132,11 +156,16 @@ public class Spectra {
     return true;
   }
   
+  // this method sets the energyMin and energyMax
   public void calibEnergy(float energyMin, float stepEnergy){
     this.energyMin=energyMin;
     this.stepEnergy=stepEnergy;
   }
 
+  /**
+   * Use this method to get the energies of the Spectra
+   * @return An array containing all the energies of the Spectra
+   */
   public float[] getEnergies(){
     float[] energies= new float[yEvt.length];
     energies[0]=energyMin;
@@ -160,12 +189,21 @@ public class Spectra {
     return output;
   }
   
+  /**
+   * This method creates a new plot using XYPlotSp
+   * @param titleWindow title of the windows where the Spectra will be draw
+   * @param titleGraph title of the component where the Spectra will be draw
+   * @return a frame of the class XYPlotSp, use showVisible to affich
+   */
   public XYPlotSp plotSpectra(String titleWindow, String titleGraph){
     double[] xEnergies = convertFloatsToDoubles(getEnergies());
     XYPlotSp plot1=new XYPlotSp(this,titleWindow,titleGraph,xEnergies,yEvt);
     return plot1;//plot1.showVisible()
   }
 
+  /**
+   * @return the index corresponding to the energy which is closer to energyToSearch in function of rightIncluded
+   */
   public int getIndiceEnergy(float energyToSearch,boolean rightIncluded){
     float[] energies=getEnergies();
     if (rightIncluded){
@@ -184,6 +222,11 @@ public class Spectra {
     }
   }
 
+  /**
+   * Use this method to search the max "x" or "y". It will help to define the resolution of an ImageGenerated
+   * @param valToSearch give the element to search : "x", "y" or "E"/"e" are accepted (all other values will be considered as "E")
+   * @return the max value of the given element (valToSearch)
+   */
   public int searchMax(String valToSearch){
     int elemt;
     if (valToSearch.equals("x")){
@@ -203,6 +246,11 @@ public class Spectra {
     return max;
   }
   
+  /**
+   * generatePicture method creates a new ImageGenerated using this Spectra and two 
+   * @param start float value and
+   * @param end fload value as bounding values
+   */
   public ImageGenerated generatePicture(float start,float end){
     if (resX==0)
         resX=searchMax("x");
@@ -222,6 +270,10 @@ public class Spectra {
     return img;
   }
   
+  /**
+   * same as generatePicture(start,end) but read the ADC only once for several ImageGenerateds
+   * @param startEnd array containing the two bounding values for each ImageGenerated
+   */
   public ImageGenerated[] generatePicture(float[][] startEnd){
     if (resX==0)
         resX=searchMax("x");
@@ -258,7 +310,10 @@ public class Spectra {
        return getFileName()+".spct.spj";
    }
   
-  
+    /**
+     * the save method stores spectra data to a file in the given directory
+     * @param directory where the Spectra will be save
+     */
     public void save(String directory){
         if (isSaved() && this.directory.equals(directory))
             return;
@@ -281,10 +336,10 @@ public class Spectra {
             adc.saveXYEListFile(file);
         } 
         catch(FileNotFoundException e){
-            IJ.log("Echec de la sauvegarde dans "+directory);
+            IJ.log("Saving file failure "+directory);
         }
         catch(IOException e2){
-            IJ.log("Echec de la sauvegarde");
+            IJ.log("Saving file failure");
         }
         try{
             if (file!=null) {
@@ -292,10 +347,15 @@ public class Spectra {
             }   
         }
         catch(IOException e){
-            IJ.log("Echec de la sauvegarde");
+            IJ.log("Saving file failure");
         }
     }
     
+    /**
+     * Uses the method save of ImageGenerated for all the ImageGenerateds produced by this Spectra
+     * @param directory where all the ImageGen will be saved
+     * @return an arraylist containing the name of the saved ImageGen
+     */
     public String[] saveAllImgGen(String directory){
         String[] namesImgSaved = new String[imgsGenProduced.size()];
         for(int i=0;i<imgsGenProduced.size();i++){
@@ -305,6 +365,10 @@ public class Spectra {
         return namesImgSaved;
     }
     
+    /**
+     * This method restores a Spectra
+     * @param path absolute path
+     */
     private void restore(String path, MainFrame parentWindow){
         try{
             DataInputStream ips=new DataInputStream(new BufferedInputStream(new FileInputStream(path)));                 
@@ -356,6 +420,11 @@ public class Spectra {
         catch(IOException e2) {}
     }
     
+    /**
+     * method restores imageGenerateds of this Spectra from the given path
+     * @param path absolute path to the file to restore
+     * @return the restored ImageGenerated or null if unsuccessfull
+     */
     public ImageGenerated restoreImgGen(String path){
         try{
             DataInputStream ips=new DataInputStream(new BufferedInputStream(new FileInputStream(path)));                 

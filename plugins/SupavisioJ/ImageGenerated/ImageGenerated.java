@@ -12,24 +12,20 @@ import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /**
- *
- * @author Administrator 
+ * Class ImageGenerated handles the data retrieved from spectra
+ * in order to generate an image from a spectra portion.
  */
+
 public class ImageGenerated {
-  Spectra sourceSpectra;
-  double[] sourcePixels;
+  Spectra sourceSpectra;//the parent spectra
+  double[] sourcePixels;//if the user change the imageProc, you can use this array
   ImageProcessor imageProc;
-  float startSpectra;
-  float endSpectra;//value of energy between two channels
+  float startSpectra;//an energy of the parent Spectra
+  float endSpectra;
   String title;
-  CustomWindowImage imgWindow;
+  CustomWindowImage imgWindow;//the window where the ImageGenerated will be show to the user
   
   
   public ImageGenerated(Spectra spectra,double[] valNbEventPerXY,float start, float end,int resX,int resY) {
@@ -53,6 +49,9 @@ public class ImageGenerated {
     show();
   }
   
+  /**
+   * This method will create a new CustomWindowImage at each call
+   */
   private void show(){
     ImagePlus ipOfImageGen = new ImagePlus(sourceSpectra.getFileName()+"_"+title,imageProc);
     imgWindow = new CustomWindowImage(ipOfImageGen,this);
@@ -64,13 +63,16 @@ public class ImageGenerated {
     return imgWindow.getImagePlus().getMask();
   }
   
-  public Roi getRegularRoi(){
+  public Roi getRoi(){
     return imgWindow.getImagePlus().getRoi();
   }
   
-
+  /**
+   * This method creates a new spectra from selected ROI, using the sourceSpectra.
+   * @return the calculated Spectra or null if no ROI was found
+   */
   public Spectra generateSpectraFromRoi(){
-      Roi ipRoi = getRegularRoi();
+      Roi ipRoi = getRoi();
       if(ipRoi!=null){
         ADC adcToCalcFromRoi = new ADC();
         ADC sourceAdc = sourceSpectra.getADC();
@@ -97,10 +99,16 @@ public class ImageGenerated {
       }
   }
   
+  /**
+   * @return a name containing the sourceSpectra name, the ImageGen name and the extension of the file to save.
+   */
   public String getNameToSave(){
        return sourceSpectra.getFileName()+"_"+title+".img.spj";
   }
   
+  /**
+   * This method will saved the ImageGenerated and its parent Spectra in the given directory
+   */
   public void save(String directory){//directory : path to directory to save
         DataOutputStream file=null;
         String nameToSave = getNameToSave();
@@ -126,7 +134,9 @@ public class ImageGenerated {
            }
         } 
   }
-   
+   /**
+    * Saves all generated images from the parent Spectra to the given directory
+    */
   public void saveAll(String directory){
       sourceSpectra.saveAllImgGen(directory);
   }        

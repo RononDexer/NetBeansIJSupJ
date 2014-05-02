@@ -1,18 +1,12 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package SupavisioJ.DataFileXYEList;
-import java.util.ArrayList;
+
 import ij.*;
 import java.io.*;
 import SupavisioJ.ConvertListFiles.ADC.ADC;
 import SupavisioJ.DataFile.DataFile;
 
 /**
- *
- * @author fbuga
+ *This class represents a file which can be a pixe, stim, rbs file or any other file containing events(x,y,E) in a binary format
  */
 public class DataFileXYEList extends DataFile {
     private ADC adc=new ADC();

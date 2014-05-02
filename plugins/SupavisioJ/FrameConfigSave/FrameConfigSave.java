@@ -1,23 +1,17 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package SupavisioJ.FrameConfigSave;
 
 import SupavisioJ.MainFrame.MainFrame;
 import javax.swing.AbstractButton;
 
 /**
- *
- * @author vivien
+ *FrameConfigSave is the frame launch if the user wants to change the saving options
  */
 public class FrameConfigSave extends javax.swing.JFrame {
     
     private MainFrame supavisioJFrame;
+    
     /**
-     * Creates new form FrameConfigSave
+     * Creates a new frame FrameConfigSave
      */
     public FrameConfigSave(MainFrame supavisioJFrame) {
         initComponents();
@@ -68,6 +62,9 @@ public class FrameConfigSave extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * This method is called if the corresponding checbox is selected and indicates to the MainFrame the corresponding setting.
+     */
     private void saveImgActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveImgActionPerformed
         AbstractButton AB = (AbstractButton) evt.getSource();
         supavisioJFrame.setSaveImg(AB.getModel().isSelected());

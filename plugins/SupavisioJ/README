@@ -12,9 +12,9 @@ For developers :
   You can open the directory containing ImageJ as a NetBeans Project (NetBeans--> Open a project). 
   Compilation :
       All sources .java of SupavisioJ can be compiled from netbeans except files under plugins/lib which can be compiled in the terminal by :
-          1- move to in the plugins directory with the terminal
+          1- move to the plugins directory using the terminal
           2- under Linux :  javac -cp .:./lib/jfreechart.jar:./lib/jcommon.jar:./lib/ij.jar:./lib lib/file.java        
             under Windows : javac -cp .;./lib/jfreechart.jar;./lib/jcommon.jar;./lib/ij.jar;./lib lib/file.java
           NB : if you want use all the features proposed by jfreechart you have to use all the .jar in plugins/lib
-  Javadoc is available in the ressource directory.
+  You can access to the Javadoc using resources/classDiagram.html.
   If you need more information, you can contact the authors of the project.
