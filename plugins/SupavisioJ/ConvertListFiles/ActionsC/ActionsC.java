@@ -114,11 +114,8 @@ public class ActionsC{
   // flags[27] - save XYE listfile compatible with supavisio
 
   private void initFlags(){
-          for (int i=0;i<28;i++) flags[i]=0;
-          for (int i=16;i<flags.length;i++) setFlags(i,1);
-          setFlags(24,0); // pixe stack
-          
-          setFlags(26,0); //pixe -map
+          for (int i=0;i<flags.length;i++) setFlags(i,0);
+          for (int i =16;i<19;i++) setFlags(i,1);//TODO remove this part of function to FrameC
   }
   /**
   * Resets all flags for ADC to 0.
