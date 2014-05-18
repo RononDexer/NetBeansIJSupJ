@@ -42,11 +42,11 @@ public class CustomWindowImage extends ImageWindow implements ActionListener {
     private void addPanel() {
         Panel panel = new Panel();
         panel.setLayout(new GridLayout(3,1));
-        buttonCalc = new Button("Calculate spectra");
+        buttonCalc = new Button(tr("Calculate spectra"));
         buttonCalc.addActionListener(this);
-        buttonSave = new Button("Save");
+        buttonSave = new Button(tr("Save"));
         buttonSave.addActionListener(this);
-        buttonSaveAll = new Button("Save All");
+        buttonSaveAll = new Button(tr("Save All"));
         buttonSaveAll.addActionListener(this);
         panel.add(buttonCalc);
         panel.add(buttonSave);
@@ -59,7 +59,7 @@ public class CustomWindowImage extends ImageWindow implements ActionListener {
         Object b = e.getSource();
         if (b==buttonCalc) {
             Spectra spectraCalc=selectedImage.generateSpectraFromRoi();
-            spectraCalc.plotSpectra("SupavisioJ", "Calculated spectra "+spectraCalc.getFileName()).showVisible();
+            spectraCalc.plotSpectra((String)"SupavisioJ", (String) tr("Calculated spectra")+" "+spectraCalc.getFileName()).showVisible();
         }
         if (b==buttonSave) {
             // save selected image
@@ -83,7 +83,7 @@ public class CustomWindowImage extends ImageWindow implements ActionListener {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setMultiSelectionEnabled(false);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        int option = fileChooser.showDialog(null,"Choisir dossier");
+        int option = fileChooser.showDialog(null,tr("Choose directory"));
         if (option == JFileChooser.APPROVE_OPTION) {
             selectedFile = fileChooser.getSelectedFile();
              // if the user accidently clicks on a file,the parent directory is selected.
@@ -128,6 +128,10 @@ public class CustomWindowImage extends ImageWindow implements ActionListener {
                 return true;
         dispose();
         return true;
+    }
+    
+    public String tr(String strToTranslate){
+        return selectedImage.tr(strToTranslate);
     }
     
 } 

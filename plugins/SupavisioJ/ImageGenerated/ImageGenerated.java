@@ -94,7 +94,7 @@ public class ImageGenerated {
         return spectreNewCalc;
       }
       else{
-          IJ.log("Veuillez faire une sélection");
+          IJ.log(tr("Please make a selection"));
           return null;
       }
   }
@@ -121,7 +121,7 @@ public class ImageGenerated {
             }
         }
         catch (IOException e) {
-            IJ.log("Echec de la sauvegarde");
+            IJ.log(tr("Fail to save"));
         }
         finally {
            try {
@@ -130,7 +130,7 @@ public class ImageGenerated {
                }
            } 
            catch (IOException e2) {
-               IJ.log("Echec de la sauvegarde");
+               IJ.log(tr("Fail to save"));
            }
         } 
   }
@@ -140,5 +140,9 @@ public class ImageGenerated {
   public void saveAll(String directory){
       sourceSpectra.saveAllImgGen(directory);
   }        
+  
+  public String tr(String strToTranslate){
+      return sourceSpectra.tr(strToTranslate);
+  }
     
 }

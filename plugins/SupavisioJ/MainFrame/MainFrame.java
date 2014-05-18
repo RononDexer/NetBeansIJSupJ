@@ -4,6 +4,7 @@ import SupavisioJ.ConvertListFiles.ADC.ADC;
 import SupavisioJ.ConvertListFiles.FrameC.FrameC;
 import SupavisioJ.DataFileXYEList.DataFileXYEList;
 import SupavisioJ.FrameConfigSave.FrameConfigSave;
+import SupavisioJ.FrameConfigLang.FrameConfigLang;
 import SupavisioJ.ImageGenerated.ImageGenerated;
 import SupavisioJ.Spectra.Spectra;
 import ij.IJ;
@@ -17,23 +18,37 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
+import javax.swing.JFileChooser; 
 
 /**
  *This class is the first window which will be open at the launch of SupavisioJ
  */
 public class MainFrame extends javax.swing.JFrame {
+    private FrameConfigLang frameConfigLang= null;
     private FrameC frameConfigLst = new FrameC();
     private FrameConfigSave frameConfigSaveSession = new FrameConfigSave(this);
     private ArrayList<Spectra> spectrasProduced = new ArrayList<Spectra>();
     private boolean saveImagesOfSession = false;
     private String nameOfApplication = "SupavisioJ";
+    private static ArrayList<String> availableLanguages = new ArrayList<String>();
+    private static ArrayList<String[]> languageData = new ArrayList<>();
 
     /**
      * Creates new form MainFrame
      */
-    public MainFrame() {
+    public MainFrame() {        
+        availableLanguages = new ArrayList<String>();
+        languageData = new ArrayList<>();                
+        searchAvailableLanguages();
+        String language = chooseLanguage();
         initComponents();
+        chooseIconLanguage(language);
+        String languageName=null;
+        try{
+            languageName = readLanguageName("plugins/SupavisioJ/resources/language/"+language+".txt");
+        }
+        catch(IOException e){}
+        frameConfigLang=new FrameConfigLang(this,languageName);
         this.setIconImage(new ImageIcon(getClass()
                 .getResource("/SupavisioJ/resources/images" + "/atome-16.png")).getImage());
     }
@@ -60,20 +75,21 @@ public class MainFrame extends javax.swing.JFrame {
         jButtonParamSaveSession = new javax.swing.JButton();
         jButtonRestore = new javax.swing.JButton();
         jButtonParamRestore = new javax.swing.JButton();
+        jButtonLanguage = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("SupavisioJ");
 
-        jButtonOpenLst.setText("Ouvrir un fichier .lst");
+        jButtonOpenLst.setText(tr("Open a .LST file"));
         jButtonOpenLst.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonOpenLstActionPerformed(evt);
             }
         });
 
-        jLabelAsk.setText("Que voulez-vous faire?");
+        jLabelAsk.setText(tr("What do you want to do?"));
 
-        jButtonOpenXYEList.setText("Ouvrir un fichier format XYE");
+        jButtonOpenXYEList.setText(tr("Open a file in a XYE format"));
         jButtonOpenXYEList.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonOpenXYEListActionPerformed(evt);
@@ -94,7 +110,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
-        jButtonSaveSession.setText("Sauvegarder la session SpJ");
+        jButtonSaveSession.setText(tr("Save the SpJ session"));
         jButtonSaveSession.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonSaveSessionActionPerformed(evt);
@@ -108,7 +124,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
-        jButtonRestore.setText("Restaurer fichiers/sessions");
+        jButtonRestore.setText(tr("Restore files or sessions"));
         jButtonRestore.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonRestoreActionPerformed(evt);
@@ -122,6 +138,13 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
+        jButtonLanguage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonLanguage.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonLanguageActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -129,35 +152,41 @@ public class MainFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(109, 109, 109)
-                        .addComponent(jLabelAsk))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(49, 49, 49)
-                        .addComponent(jButtonOpenLst, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButtonParamLst, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButtonOpenXYEList, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButtonParamPIXE, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButtonSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButtonParamSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButtonRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButtonParamRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(49, 49, 49)
-                        .addComponent(jButtonOpenXYEList, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(49, 49, 49)
+                                .addComponent(jButtonOpenLst, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(109, 109, 109)
+                                .addComponent(jLabelAsk)))
                         .addGap(18, 18, 18)
-                        .addComponent(jButtonParamPIXE, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(49, 49, 49)
-                        .addComponent(jButtonSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButtonParamSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(49, 49, 49)
-                        .addComponent(jButtonRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButtonParamRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jButtonParamLst, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButtonLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(60, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabelAsk, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabelAsk, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonOpenLst)
@@ -196,13 +225,13 @@ public class MainFrame extends javax.swing.JFrame {
             Spectra spectraXYE= new Spectra(adcXYE,fileXYE.getName());
             if(spectraXYE.getEnergies().length>1){//check if a correct file has been open
                 spectraXYE.setParentWindow(this);
-                spectraXYE.plotSpectra(nameOfApplication,"Spectre "+spectraXYE.getFileName()).showVisible();
+                spectraXYE.plotSpectra(nameOfApplication, (String) tr("Spectra")+" "+spectraXYE.getFileName()).showVisible();
             }
         }
     }//GEN-LAST:event_jButtonOpenXYEListActionPerformed
 
     private void jButtonParamPIXEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamPIXEActionPerformed
-        IJ.log("Pas de paramètres pour le moment");
+        IJ.log(tr("No settings available for the moment"));
     }//GEN-LAST:event_jButtonParamPIXEActionPerformed
 
     private void jButtonSaveSessionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveSessionActionPerformed
@@ -238,7 +267,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
             else if(path.contains("spct.spj")){
                 Spectra spectToRestore = new Spectra(path,this);
-                spectToRestore.plotSpectra(nameOfApplication, "Spectre "+spectToRestore.getFileName()).showVisible();
+                spectToRestore.plotSpectra(nameOfApplication, (String)  tr("Spectra")+" "+spectToRestore.getFileName()).showVisible();
             }
             else if(path.contains("img.spj")){
                 int index=path.lastIndexOf("/")+1;
@@ -256,7 +285,7 @@ public class MainFrame extends javax.swing.JFrame {
                     String directory = path.substring(0, index);
                     String nameToSave = nameSourceSpectra+".spct.spj";
                     sourceSpectra=new Spectra(directory+nameToSave, this);
-                    sourceSpectra.plotSpectra(nameOfApplication, "Spectre "+sourceSpectra.getFileName());
+                    sourceSpectra.plotSpectra(nameOfApplication, (String) tr("Spectra")+" "+sourceSpectra.getFileName());
                 }
                 sourceSpectra.restoreImgGen(path);
             }
@@ -264,8 +293,12 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonRestoreActionPerformed
 
     private void jButtonParamRestoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamRestoreActionPerformed
-        IJ.log("Fonctionnalité non codée pour le moment");
+        IJ.log(tr("Uncoded feature for the moment"));
     }//GEN-LAST:event_jButtonParamRestoreActionPerformed
+
+    private void jButtonLanguageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLanguageActionPerformed
+        frameConfigLang.setVisible(true);
+    }//GEN-LAST:event_jButtonLanguageActionPerformed
 
     /**
      * This method will save the session (meaning all Spectras produced since the launch) in the given directory.
@@ -300,7 +333,7 @@ public class MainFrame extends javax.swing.JFrame {
             buff.close();   // buffer & stream are closed.    
         }
         catch(IOException e){
-            IJ.log("Echec de l'enregistrement de la session");
+            IJ.log(tr("Fail to save the session Spj"));
         }
     }
     
@@ -318,7 +351,7 @@ public class MainFrame extends javax.swing.JFrame {
             for (String readLine : readLines) {
                 if (readLine.contains("spct")){
                     Spectra spectToRestore = new Spectra(directory+readLine,this);
-                    spectToRestore.plotSpectra(nameOfApplication, "Spectre "+spectToRestore.getFileName()).showVisible();
+                    spectToRestore.plotSpectra(nameOfApplication,  (String) tr("Spectra")+" "+spectToRestore.getFileName()).showVisible();
                 }
                 else if (readLine.contains("img")){
                     Spectra sourceSpectra = spectrasProduced.get(spectrasProduced.size()-1);
@@ -330,11 +363,113 @@ public class MainFrame extends javax.swing.JFrame {
         catch(IOException e){}
     }
     
+    
+    private void searchAvailableLanguages(){
+        final File folder = new File("plugins/SupavisioJ/resources/language");
+        File[] listOfFiles = folder.listFiles();
+        for (File file : listOfFiles) {
+            if (file.getName().endsWith("txt")){
+                try{
+                    String name = readLanguageName(file.getAbsolutePath());
+                    if (name!=null){
+                       availableLanguages.add(name); 
+                    }
+                }
+                catch(IOException e){}
+            }
+        }
+    }
+    
+    private String chooseLanguage(){
+        try{
+            String[] lines =readLinesFile("plugins/SupavisioJ/resources/language/default");
+            if (!lines[0].contains("english")&&!lines[0].contains("source")){
+                String[] linesSource=readLinesFile("plugins/SupavisioJ/resources/language/source.txt");
+                String[] linesTranslated=readLinesFile("plugins/SupavisioJ/resources/language/"+lines[0]+".txt");
+                languageData.add(linesSource);
+                languageData.add(linesTranslated);
+                return lines[0];
+            }
+            else{
+                return lines[0];
+            }
+        }
+        catch(IOException e){}
+        return null;
+    }
+    
+    private void chooseIconLanguage(String language){
+        jButtonLanguage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/language/"+language+".png")));
+    }
+    
+    public String[] getLanguages(){
+        return availableLanguages.toArray( new String[availableLanguages.size()] );
+    }
+    
+    public String getNameFileLang(String languageName){
+        final File folder = new File("plugins/SupavisioJ/resources/language");//");
+        File[] listOfFiles = folder.listFiles();
+        for (File file : listOfFiles) {
+            if (file.getName().endsWith("txt")){
+                try{
+                    String name = readLanguageName(file.getAbsolutePath());
+                    if (name!=null && name.equals(languageName)){
+                        String fileName = file.getName();
+                        return fileName.substring(0,fileName.lastIndexOf("."));
+                    }
+                }
+                catch(IOException e){}
+            }
+        }
+        return "source";
+    }
+    
+    public static String tr(String dataToTranslate){
+        if(dataToTranslate!=null){
+            if(languageData.size()>1){
+                String[] source=languageData.get(0);
+                for (int i=0;i<source.length;i++){
+                    String lineSource=source[i];
+                    if (lineSource.equals(dataToTranslate)){
+                        String[] translate = languageData.get(1);
+                        String line = translate[i];
+                        return line;
+                    }
+                }
+            }
+        }
+        return dataToTranslate;
+    }
+    
+    public String readLanguageName(String path)throws IOException{
+        BufferedReader buff=null;
+        String languageName= null;
+        try {
+          buff=buff = new BufferedReader(new FileReader(path));//file opening
+          for (int i=0;i<3;i++) {
+            if(i==2){
+                languageName = buff.readLine();
+            }
+            else{
+                buff.readLine();
+            }
+          }
+          buff.close();
+        }	
+        catch(FileNotFoundException e){
+          IJ.log(tr("Error. Language file not found or invalid"));
+        }
+        catch (NullPointerException e){//end of the file
+          buff.close();
+        }
+        return languageName;
+    }
+  
     /**
      * Method to read a text file
      * @return return an array containing the lines of file. "\n" has been removed.
      */
-    private String[] readLinesFile(String path)throws IOException{
+    public String[] readLinesFile(String path)throws IOException{
         BufferedReader buff=null;
         ArrayList<String> arrayLines=new ArrayList<String>();
         try {
@@ -350,7 +485,7 @@ public class MainFrame extends javax.swing.JFrame {
           }
         }	
         catch(FileNotFoundException e){
-          IJ.log("Erreur. Fichier de sauvegarde non trouvé");
+          IJ.log(tr("Error. File not found."));
         }
         catch (NullPointerException e){//end of the file
           arrayLines.remove(arrayLines.size()-1);
@@ -371,7 +506,7 @@ public class MainFrame extends javax.swing.JFrame {
         File selectedFile = null;
         try{
           JFileChooser jF = new JFileChooser();//création dun nouveau filechooser
-          jF.setApproveButtonText("OK"); //intitulé du bouton
+          jF.setApproveButtonText(tr("OK")); //intitulé du bouton
           jF.setMultiSelectionEnabled(false);
 
           jF.showOpenDialog(null); //affiche la boite de dialogue
@@ -379,7 +514,7 @@ public class MainFrame extends javax.swing.JFrame {
           selectedFile = jF.getSelectedFile(); 
         }
         catch (Exception e){
-          IJ.log("Erreur");
+          IJ.log(tr("Error"));
         }
         if (selectedFile!=null)
             return selectedFile.getAbsolutePath();
@@ -394,7 +529,7 @@ public class MainFrame extends javax.swing.JFrame {
         File[] selectedFiles = null;
         try{
           JFileChooser jF = new JFileChooser();//création dun nouveau filechosser
-          jF.setApproveButtonText("OK"); //intitulé du bouton
+          jF.setApproveButtonText(tr("OK")); //intitulé du bouton
           jF.setMultiSelectionEnabled(true);
 
           jF.showOpenDialog(null); //affiche la boite de dialogue
@@ -402,7 +537,7 @@ public class MainFrame extends javax.swing.JFrame {
           selectedFiles = jF.getSelectedFiles(); 
         }
         catch (Exception e){
-          IJ.log("Erreur");
+          IJ.log(tr("Error"));
         }
         String[] pathsToReturn = null;
         if (selectedFiles!=null){
@@ -424,7 +559,7 @@ public class MainFrame extends javax.swing.JFrame {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setMultiSelectionEnabled(false);
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        int option = fileChooser.showDialog(null,"Choisir dossier");
+        int option = fileChooser.showDialog(null,tr("Choose directory"));
         if (option == JFileChooser.APPROVE_OPTION) {
             selectedFile = fileChooser.getSelectedFile();
              // if the user accidently click a file, then select the parent directory.
@@ -446,6 +581,7 @@ public class MainFrame extends javax.swing.JFrame {
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonLanguage;
     private javax.swing.JButton jButtonOpenLst;
     private javax.swing.JButton jButtonOpenXYEList;
     private javax.swing.JButton jButtonParamLst;

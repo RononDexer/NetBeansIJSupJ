@@ -31,7 +31,7 @@ public class FrameConfigSave extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        saveImg.setText("sauvegarder images");
+        saveImg.setText(tr("sauvegarder images"));
         saveImg.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveImgActionPerformed(evt);
@@ -69,7 +69,10 @@ public class FrameConfigSave extends javax.swing.JFrame {
         AbstractButton AB = (AbstractButton) evt.getSource();
         supavisioJFrame.setSaveImg(AB.getModel().isSelected());
     }//GEN-LAST:event_saveImgActionPerformed
-
+    
+    public String tr(String strToTranslate){
+        return supavisioJFrame.tr(strToTranslate);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox saveImg;

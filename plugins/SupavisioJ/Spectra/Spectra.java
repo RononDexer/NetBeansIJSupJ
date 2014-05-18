@@ -15,7 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import javax.swing.JFrame;
-import lib.XYPlotSp;
+import SupavisioJ.resources.lib.XYPlotSp;
 
 
 /**
@@ -33,7 +33,7 @@ public class Spectra {
   private String directory=null;// useful for saving and restoring
   private String nameFile =null; //if spectra open from a file or a parent spectra
   private int level=0; //to know if the spectra has been produced from a spectra or a file (if file : level=0)
-  private MainFrame parentWindow;
+  private static MainFrame parentWindow;
   private ArrayList<ImageGenerated> imgsGenProduced = new ArrayList<ImageGenerated>();
   
   
@@ -132,6 +132,10 @@ public class Spectra {
   }
   
   public MainFrame getParentWindow(){
+      return parentWindow;
+  }
+  
+  public static MainFrame getParentWindowS(){
       return parentWindow;
   }
   
@@ -336,10 +340,10 @@ public class Spectra {
             adc.saveXYEListFile(file);
         } 
         catch(FileNotFoundException e){
-            IJ.log("Saving file failure "+directory);
+            IJ.log(tr("Saving file failure")+" "+directory);
         }
         catch(IOException e2){
-            IJ.log("Saving file failure");
+            IJ.log(tr("Saving file failure"));
         }
         try{
             if (file!=null) {
@@ -347,7 +351,7 @@ public class Spectra {
             }   
         }
         catch(IOException e){
-            IJ.log("Saving file failure");
+            IJ.log(tr("Saving file failure"));
         }
     }
     
@@ -441,5 +445,9 @@ public class Spectra {
         catch(IOException e2) {}
         return null; 
     }    
-       
+    
+    
+    public String tr(String strToTranslate){
+        return parentWindow.tr(strToTranslate);
+    }
 }

@@ -22,12 +22,12 @@ public class DataFileXYEList extends DataFile {
         adc.restoreXYEListFile(ips);
       }
       catch (FileNotFoundException e){
-          IJ.log("fichier non trouvé ou erreur d'ouverture");
+          IJ.log("File not found");
       }
       if(ips!=null){
         try{ips.close();}
         catch (IOException e2){
-            IJ.log("Échec d'ouverture du fichier "+filePath);
+            IJ.log("Fail to open the file "+filePath);
         }
       }
       return adc;
