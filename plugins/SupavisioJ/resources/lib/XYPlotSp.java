@@ -1,8 +1,8 @@
 package SupavisioJ.resources.lib;
-import SupavisioJ.resources.lib.CheckBoxListenerSp;
 import SupavisioJ.ImageGenerated.ImageGenerated;
 import SupavisioJ.MainFrame.MainFrame;
 import SupavisioJ.Spectra.Spectra;
+import SupavisioJ.resources.lib.CheckBoxListenerSp;
 
 import ij.*;
 import java.awt.Color;
@@ -21,10 +21,10 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -43,6 +43,7 @@ public class XYPlotSp extends JFrame {
     private Spectra spectraDrew;
     private JFreeChart chart;
     private static MainFrame parentWindow;
+    private boolean yIsLog=false;
     
     public XYPlotSp(Spectra spectraDrew, final String titleWindow,final String titleGraph2, double[] energiesX, double[] dataY) {
         super(titleWindow);
@@ -74,7 +75,8 @@ public class XYPlotSp extends JFrame {
     private static XYDataset createDataset(double[] energiesX,double[] dataY) {
         final XYSeries series1 = new XYSeries(tr("Spectra")+" 1");
         for(int i=0;i<energiesX.length;i++){
-            series1.add(energiesX[i],dataY[i]);
+            if(dataY[i]>0)
+                series1.add(energiesX[i],dataY[i]);
         }
         final XYSeriesCollection dataset = new XYSeriesCollection();
         dataset.addSeries(series1);
@@ -421,8 +423,15 @@ public class XYPlotSp extends JFrame {
     }
     
     private void jButtonLogLinActionPerformed(java.awt.event.ActionEvent evt) {                                         
-        // TODO afficher log ou lin l'axe des y
-        IJ.log(tr("Uncoded feature for the moment"));
+        XYPlot plot = (XYPlot) chart.getPlot();
+        if (!yIsLog){
+            plot.setRangeAxis(new LogarithmicAxis(tr("Events number")));
+            yIsLog=true;
+        }
+        else{
+            plot.setRangeAxis(new NumberAxis(tr("Events number")));
+            yIsLog=false;
+        }
     }
     
     private void jButtonSaveActionPerformed(java.awt.event.ActionEvent evt) {                                         
