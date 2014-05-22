@@ -8,7 +8,7 @@ import SupavisioJ.ConvertListFiles.ADC.ADC;
 */
 public abstract class DataFile {
     protected String filePath;
-
+    int test;
 
     public String getPath(){
         return filePath;
