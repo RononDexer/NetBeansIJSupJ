@@ -55,7 +55,7 @@ public class XYPlotSp extends JFrame {
         //create the chart
         final JFreeChart chart = createChart(dataset,titleGraph2);
         this.chart = chart;
-        final ChartPanel chartPanel = new ChartPanel(chart);
+        final CustomChartPanel chartPanel = new CustomChartPanel(chart,this);
         chartPanel.setMouseWheelEnabled(true);
         chartPanel.setPreferredSize(new Dimension(500, 270));
         jButtonLogLinActionPerformed(null);
@@ -455,6 +455,33 @@ public class XYPlotSp extends JFrame {
     
     public static String tr(String strToTranslate){
         return parentWindow.tr(strToTranslate);
+    }
+    
+    public float getRealXValue(double value, boolean rightIncluded){
+        if(spectraDrew.energyExist((float) value)){
+            int indiceNearValue=spectraDrew.getIndiceEnergy((float)value,rightIncluded);
+            return spectraDrew.getEnergies()[indiceNearValue];
+        }
+        return -1;
+    }
+    
+    public JTextField getField(JCheckBox checkBoxOfInterest,String nameField){
+        for(int i=0;i<vectButtonsSupp.size();i++){
+            JComponent[] tabJComp = (JComponent[]) vectButtonsSupp.get(i);
+            JCheckBox checkBoxCurrent = (JCheckBox) tabJComp[0];
+            if(checkBoxCurrent==checkBoxOfInterest){
+                int indexOfInterest=-1;
+                switch(nameField){
+                    case "Name" : indexOfInterest=1;break;
+                    case "Min" : indexOfInterest=2; break;
+                    case "Max" : indexOfInterest=3;break;
+                }
+                if (indexOfInterest!=-1){
+                    return (JTextField) tabJComp[indexOfInterest];
+                }
+            }
+        }
+        return null;
     }
         
     // Variables declaration - do not modify 
