@@ -58,6 +58,7 @@ public class XYPlotSp extends JFrame {
         final ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setMouseWheelEnabled(true);
         chartPanel.setPreferredSize(new Dimension(500, 270));
+        jButtonLogLinActionPerformed(null);
         initComponents(chartPanel);
     }
     
@@ -217,7 +218,7 @@ public class XYPlotSp extends JFrame {
             textFieldCurrentName.setText(tr("Name"));
             textFieldCurrentMin.setText(tr("Min"));
             textFieldCurrentMax.setText(tr("Max"));
-            grp1.addComponent(checkBoxCurrent, GroupLayout.PREFERRED_SIZE, 17, GroupLayout.PREFERRED_SIZE);
+            grp1.addComponent(checkBoxCurrent, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE);
             grp1.addPreferredGap(ComponentPlacement.RELATED);
             grp1.addComponent(textFieldCurrentName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
             grp1.addPreferredGap(ComponentPlacement.RELATED);

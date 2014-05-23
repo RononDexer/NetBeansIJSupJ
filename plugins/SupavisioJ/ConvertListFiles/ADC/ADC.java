@@ -45,6 +45,10 @@ public class ADC{
         return eventList.get(getNEvents()-1);
     }
 
+    public void removeEvent(int position){
+        eventList.remove(position);
+    }
+    
     public int getNEvents(){
         return eventList.size();
     }

@@ -59,6 +59,14 @@ public class Spectra {
       i--;
     }
     yEvt=Arrays.copyOfRange(yEvt, 0, i+1);
+    int cpteur=adc.getNEvents();
+    //x=0 or y=0 is ignored with this code
+    for(int j=0;j<cpteur;j++){
+        if(adc.getX(j)==0 || adc.getY(j)==0){
+            adc.removeEvent(j);
+            cpteur--;
+        }
+    }
   } 
   
   // constructor with an ADC, a float value for lower energy delimiter and
@@ -266,7 +274,7 @@ public class Spectra {
     for (int i=0;i<adc.getNEvents();i++){
       int[] event=adc.getEvent(i);
       if (event[2]>=indMin && event[2]<=indMax){
-        valNbEventPerXY[event[0]+event[1]*(resX+1)]+=1;
+        valNbEventPerXY[event[0]-1+(event[1]-1)*(resX+1)]+=1;
       }
     }
     ImageGenerated img= new ImageGenerated(this,valNbEventPerXY,start,end,resX,resY);
@@ -280,9 +288,9 @@ public class Spectra {
    */
   public ImageGenerated[] generatePicture(float[][] startEnd){
     if (resX==0)
-        resX=searchMax("x");
+        resX=searchMax("x")-1;//-1 because here x starts at 1 and for the picture x starts at 0
     if (resY==0)
-        resY=searchMax("y");
+        resY=searchMax("y")-1;
     int[][] startEndInt = new int[startEnd.length][2];
     for(int i=0; i<startEnd.length;i++){
         startEndInt[i][0]= getIndiceEnergy(startEnd[i][0],false)+channelMinim;
@@ -295,7 +303,7 @@ public class Spectra {
         int indMin = startEndInt[j][0];
         int indMax = startEndInt[j][1];
         if (event[2]>=indMin && event[2]<=indMax){
-          valNbEventPerXY[j][event[0]+event[1]*(resX+1)]+=1;
+          valNbEventPerXY[j][event[0]-1+(event[1]-1)*(resX+1)]+=1;
         }
       }
     }
