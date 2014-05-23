@@ -1,5 +1,5 @@
 Fichier de traduction pour le français
-v0.1, 0.00%
+v0.1, 100.00%
 Français
 Spectre
 Pas de paramètres pour le moment

@@ -1,4 +1,4 @@
-The first two lnes of the file won't be read, so write useful information here
+The first two lines of the file won't be read, so write useful information here
 and here as versionning, state of the translation, author, ...
 English
 Spectra
