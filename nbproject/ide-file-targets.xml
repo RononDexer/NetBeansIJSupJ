@@ -6,7 +6,7 @@
         <fail unless="files">Must set property 'files'</fail>
         <!-- TODO decide on and define some value for ${build.classes.dir} -->
         <javac destdir="plugins" includes="${files}" source="1.7" srcdir="plugins">
-            <classpath path="ij.jar"/>
+            <classpath path="./ij.jar;./plugins/lib/;./plugins/lib/jfreechart.jar;./plugins/lib/jcommon.jar"/>
         </javac>
     </target>
     <!-- TODO: edit the following target according to your needs -->
