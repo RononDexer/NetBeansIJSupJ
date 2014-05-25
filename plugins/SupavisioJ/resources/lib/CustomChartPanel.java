@@ -48,10 +48,10 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
 	float startValueX = getPointInChart(mEvt,false); //to have correspondance with actual values
 	setMouseZoomable(true,false); //zomm activation
         ArrayList<JCheckBox> checkBoxsSelected = parentXYPlotSp.getCheckBoxSelected();
-        for (JCheckBox checkBox : checkBoxsSelected) {
-            JTextField minField = parentXYPlotSp.getField(checkBox,"Min");
-            minField.setText(String.valueOf(startValueX));
-        }
+        int nbOfcheckBox = checkBoxsSelected.size();
+        JCheckBox checkBoxToChange = checkBoxsSelected.get(nbOfcheckBox-1);
+        JTextField minField = parentXYPlotSp.getField(checkBoxToChange,"Min");
+        minField.setText(String.valueOf(startValueX));
       } 
       else{ 
 	super.mousePressed(mEvt); //call to the initial method 
@@ -70,13 +70,13 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
         float endValueX = getPointInChart(mEvt,true);
 	setMouseZoomable(true,false); 
         ArrayList<JCheckBox> checkBoxsSelected = parentXYPlotSp.getCheckBoxSelected();
-        for (JCheckBox checkBox : checkBoxsSelected) {
-            JTextField minField = parentXYPlotSp.getField(checkBox,"Min");
-            float minVal = Float.valueOf(minField.getText());
-            if (endValueX>minVal){
-                JTextField maxField = parentXYPlotSp.getField(checkBox,"Max");
-                maxField.setText(String.valueOf(endValueX));
-            }
+        int nbOfcheckBox = checkBoxsSelected.size();
+        JCheckBox checkBoxToChange = checkBoxsSelected.get(nbOfcheckBox-1);
+        JTextField minField = parentXYPlotSp.getField(checkBoxToChange,"Min");
+        float minVal = Float.valueOf(minField.getText());
+        if (endValueX>minVal){
+            JTextField maxField = parentXYPlotSp.getField(checkBoxToChange,"Max");
+            maxField.setText(String.valueOf(endValueX));
         }
       } 
       else { 
@@ -92,7 +92,6 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
       Insets insets = getInsets(); 
       int mouseX = (int) ((mEvt.getX() - insets.left) / this.getScaleX()); 
       int mouseY = (int) ((mEvt.getY() - insets.top) / this.getScaleY()); 
-      IJ.log("x = " + mouseX + ", y = " + mouseY); 
 
       Point2D pointOfInterest = this.translateScreenToJava2D(new Point(mouseX, mouseY)); 
       XYPlot plot = (XYPlot) chart.getPlot(); 
