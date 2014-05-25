@@ -20,7 +20,7 @@ public class Selection implements PlugIn, Measurements {
 	private float[] kernel3 = {1f, 1f, 1f};
 	private static String angle = "15"; // degrees
 	private static String enlarge = "15"; // pixels
-	private static String bandSize = "15"; // pixels
+	private static int bandSize = 15; // pixels
 	private static boolean nonScalable;
 	private static Color linec, fillc;
 	private static int lineWidth = 1;
@@ -56,10 +56,14 @@ public class Selection implements PlugIn, Measurements {
     		toBoundingBox(imp); 
      	else if (arg.equals("toarea"))
     		lineToArea(imp); 
+     	else if (arg.equals("toline"))
+    		areaToLine(imp); 
 	   	else if (arg.equals("properties"))
     		{setProperties("Properties", imp.getRoi()); imp.draw();}
-    	else
-    		runMacro(arg);
+ 		else if (arg.equals("band"))
+			makeBand(imp);
+		else
+			runMacro(arg);
 	}
 	
 	void runMacro(String arg) {
@@ -84,10 +88,6 @@ public class Selection implements PlugIn, Measurements {
 		} else if (arg.equals("enlarge")) {
 			String value = IJ.runMacroFile("ij.jar:EnlargeSelection", enlarge); 
 			if (value!=null) enlarge = value; 
-			Roi.previousRoi = roi;
-		} else if (arg.equals("band")) {
-			String value = IJ.runMacroFile("ij.jar:MakeSelectionBand", bandSize); 
-			if (value!=null) bandSize = value;    	
 			Roi.previousRoi = roi;
 		}
 	}
@@ -226,7 +226,7 @@ public class Selection implements PlugIn, Measurements {
 			return;
 		PolygonRoi p = (PolygonRoi)roi;
 		if (!segmentedSelection)
-			p = trimPolygon(p, getUncalibratedLength(p));
+			p = trimPolygon(p, p.getUncalibratedLength());
 		String options = Macro.getOptions();
 		if (options!=null && options.indexOf("straighten")!=-1)
 			p.fitSplineForStraightening();
@@ -238,15 +238,6 @@ public class Selection implements PlugIn, Measurements {
 		LineWidthAdjuster.update();	
 	}
 	
-	double getUncalibratedLength(PolygonRoi roi) {
-		Calibration cal = imp.getCalibration();
-		double spw=cal.pixelWidth, sph=cal.pixelHeight;
-		cal.pixelWidth=1.0; cal.pixelHeight=1.0;
-		double length = roi.getLength();
-		cal.pixelWidth=spw; cal.pixelHeight=sph;
-		return length;
-	}
-
 	PolygonRoi trimPolygon(PolygonRoi roi, double length) {
 		int[] x = roi.getXCoordinates();
 		int[] y = roi.getYCoordinates();
@@ -334,7 +325,10 @@ public class Selection implements PlugIn, Measurements {
 			{IJ.error("Fit Ellipse", "Selection required"); return;}
 		if (roi.isLine())
 			{IJ.error("Fit Ellipse", "\"Fit Ellipse\" does not work with line selections"); return;}
-		ImageStatistics stats = imp.getStatistics(Measurements.CENTROID+Measurements.ELLIPSE);
+		ImageProcessor ip = imp.getProcessor();
+		ip.setRoi(roi);
+		int options = Measurements.CENTROID+Measurements.ELLIPSE;
+		ImageStatistics stats = ImageStatistics.getStatistics(ip, options, null);
 		double dx = stats.major*Math.cos(stats.angle/180.0*Math.PI)/2.0;
 		double dy = - stats.major*Math.sin(stats.angle/180.0*Math.PI)/2.0;
 		double x1 = stats.xCentroid - dx;
@@ -481,6 +475,27 @@ public class Selection implements PlugIn, Measurements {
 		Roi.previousRoi = (Roi)roi.clone();
 	}
 	
+	void areaToLine(ImagePlus imp) {
+		Roi roi = imp.getRoi();
+		if (roi==null || !roi.isArea()) {
+			IJ.error("Area to Line", "Area selection required");
+			return;
+		}
+		Polygon p = roi.getPolygon();
+		if (p==null) return;
+		int type1 = roi.getType();
+		if (type1==Roi.COMPOSITE) {
+			IJ.error("Area to Line", "Composite selections cannot be converted to lines.");
+			return;
+		}
+		int type2 = Roi.POLYLINE;
+		if (type1==Roi.OVAL||type1==Roi.FREEROI||type1==Roi.TRACED_ROI
+		||((roi instanceof PolygonRoi)&&((PolygonRoi)roi).isSplineFit()))
+			type2 = Roi.FREELINE;
+		Roi roi2 = new PolygonRoi(p.xpoints, p.ypoints, p.npoints, type2);
+		imp.setRoi(roi2);
+	}
+
 	void toBoundingBox(ImagePlus imp) {
 		Roi roi = imp.getRoi();
 		Rectangle r = roi.getBounds();
@@ -503,7 +518,8 @@ public class Selection implements PlugIn, Measurements {
 		RoiManager rm = (RoiManager)frame;
 		boolean altDown= IJ.altKeyDown();
 		IJ.setKeyUp(IJ.ALL_KEYS);
-		if (altDown) IJ.setKeyDown(KeyEvent.VK_SHIFT);
+		if (altDown && !IJ.macroRunning())
+			IJ.setKeyDown(KeyEvent.VK_SHIFT);
 		rm.runCommand("add");
 		IJ.setKeyUp(IJ.ALL_KEYS);
 	}
@@ -518,6 +534,79 @@ public class Selection implements PlugIn, Measurements {
 		}
 		RoiProperties rp = new RoiProperties(title, roi);
 		return rp.showDialog();
+	}
+	
+	private void makeBand(ImagePlus imp) {
+		Roi roi = imp.getRoi();
+		if (roi==null) {
+			IJ.error("Make Band", "Selection required");
+			return;
+		}
+		if (!roi.isArea()) {
+			IJ.error("Make Band", "Area selection required");
+			return;
+		}
+		Calibration cal = imp.getCalibration();
+		double pixels = bandSize;
+		double size = pixels*cal.pixelWidth;
+		int decimalPlaces = 0;
+		if ((int)size!=size)
+			decimalPlaces = 2;
+		GenericDialog gd = new GenericDialog("Make Band");
+		gd.addNumericField("Band Size:", size, decimalPlaces, 4, cal.getUnits());
+		gd.showDialog();
+		if (gd.wasCanceled())
+        	return;
+		size = gd.getNextNumber();
+		if (Double.isNaN(size)) {
+			IJ.error("Make Band", "invalid number");
+			return;
+		}
+		int n = (int)Math.round(size/cal.pixelWidth); 
+		if (n >255) {
+			IJ.error("Make Band", "Cannot make bands wider that 255 pixels");
+			return;
+		}
+		int width = imp.getWidth();
+		int height = imp.getHeight();
+		Rectangle r = roi.getBounds();
+		ImageProcessor ip = roi.getMask();
+		if (ip==null) {
+			ip = new ByteProcessor(r.width, r.height);
+			ip.invert();
+		}
+		ImageProcessor mask = new ByteProcessor(width, height);
+		mask.insert(ip, r.x, r.y);
+		ImagePlus edm = new ImagePlus("mask", mask);
+		boolean saveBlackBackground = Prefs.blackBackground;
+		Prefs.blackBackground = false;
+		IJ.run(edm, "Distance Map", "");
+		Prefs.blackBackground = saveBlackBackground;
+		ip = edm.getProcessor();
+		ip.setThreshold(0, n, ImageProcessor.NO_LUT_UPDATE);
+		int xx=-1, yy=-1;
+		for (int x=r.x; x<r.x+r.width; x++) {
+			for (int y=r.y; y<r.y+r.height; y++) {
+				if (ip.getPixel(x, y)<n) {
+					xx=x; yy=y;
+					break;
+				}
+			}
+			if (xx>=0||yy>=0)
+				break;
+		}
+		int count = IJ.doWand(edm, xx, yy, 0, null);
+		if (count<=0) {
+			IJ.error("Make Band", "Unable to make band");
+			return;
+		}
+		ShapeRoi roi2 = new ShapeRoi(edm.getRoi());
+		if (!(roi instanceof ShapeRoi))
+			roi = new ShapeRoi(roi);
+		ShapeRoi roi1 = (ShapeRoi)roi;
+		roi2 = roi2.not(roi1);
+		imp.setRoi(roi2);
+		bandSize = n;
 	}
 
 }

@@ -14,6 +14,8 @@ import ij.plugin.frame.ContrastAdjuster;
 import ij.plugin.frame.Recorder;
 import ij.plugin.Converter;
 import ij.plugin.Duplicator;
+import ij.plugin.RectToolOptions;
+
 
 /**
 An ImagePlus contain an ImageProcessor (2D image) or an ImageStack (3D, 4D or 5D image).
@@ -27,7 +29,7 @@ a list ImageProcessors of same type and size.
 @see ij.gui.ImageCanvas
 */
    
-public class ImagePlus implements ImageObserver, Measurements {
+public class ImagePlus implements ImageObserver, Measurements, Cloneable {
 
 	/** 8-bit grayscale (unsigned)*/
 	public static final int GRAY8 = 0;
@@ -348,6 +350,7 @@ public class ImagePlus implements ImageObserver, Measurements {
 	public void show(String statusMessage) {
 		if (win!=null) return;
 		if ((IJ.isMacro() && ij==null) || Interpreter.isBatchMode()) {
+			if (isComposite()) ((CompositeImage)this).reset();
 			ImagePlus img = WindowManager.getCurrentImage();
 			if (img!=null) img.saveRoi();
 			WindowManager.setTempCurrentImage(this);
@@ -383,6 +386,13 @@ public class ImagePlus implements ImageObserver, Measurements {
 			if (imageType==GRAY16 && default16bitDisplayRange!=0) {
 				resetDisplayRange();
 				updateAndDraw();
+			}
+			if (stackSize>1) {
+				int c = getChannel();
+				int z = getSlice();
+				int t = getFrame();
+				if (c>1 || z>1 || t>1)
+					setPosition(c, z, t);
 			}
 			notifyListeners(OPENED);
 		}
@@ -471,6 +481,18 @@ public class ImagePlus implements ImageObserver, Measurements {
 			else
 				repaintWindow();
 		}
+	}
+	
+	/** Replaces this image with the specified ImagePlus. May
+		not work as expected if 'imp' is a CompositeImage
+		and this image is not. */
+	public void setImage(ImagePlus imp) {
+		if (imp.getWindow()!=null)
+			imp = imp.duplicate();
+		ImageStack stack2 = imp.getStack();
+		if (imp.isHyperStack())
+			setOpenAsHyperStack(true);
+		setStack(stack2, imp.getNChannels(), imp.getNSlices(), imp.getNFrames());
 	}
 	
 	/** Replaces the ImageProcessor with the one specified and updates the display. */
@@ -648,7 +670,9 @@ public class ImagePlus implements ImageObserver, Measurements {
 	
 	/** Returns a reference to the current ImageProcessor. If there
 	    is no ImageProcessor, it creates one. Returns null if this
-	    ImagePlus contains no ImageProcessor and no AWT Image. */
+	    ImagePlus contains no ImageProcessor and no AWT Image.
+		Sets the line width to the current line width and sets the
+		calibration table if the image is density calibrated. */
 	public ImageProcessor getProcessor() {
 		if (ip==null && img==null)
 			return null;
@@ -692,7 +716,7 @@ public class ImagePlus implements ImageObserver, Measurements {
 		ImageProcessor mask = roi.getMask();
 		if (mask==null)
 			return null;
-		if (ip!=null) {
+		if (ip!=null && roi!=null) {
 			ip.setMask(mask);
 			ip.setRoi(roi.getBounds());
 		}
@@ -1013,7 +1037,7 @@ public class ImagePlus implements ImageObserver, Measurements {
 		
 	/** Creates a LookUpTable object that corresponds to this image. */
     public LookUpTable createLut() {
-	ImageProcessor ip2 = getProcessor();
+		ImageProcessor ip2 = getProcessor();
 		if (ip2!=null)
 			return new LookUpTable(ip2.getColorModel());
 		else
@@ -1248,7 +1272,8 @@ public class ImagePlus implements ImageObserver, Measurements {
 		Does nothing if this image is not a stack. */
 	public synchronized void setSlice(int n) {
 		if (stack==null || (n==currentSlice&&ip!=null)) {
-	    	updateAndRepaintWindow();
+			if (!noUpdateMode)
+				updateAndRepaintWindow();
 			return;
 		}
 		if (n>=1 && n<=stack.getSize()) {
@@ -1276,7 +1301,7 @@ public class ImagePlus implements ImageObserver, Measurements {
 			//}
 			if (imageType==COLOR_RGB)
 				ContrastAdjuster.update();
-			if (!(Interpreter.isBatchMode()||noUpdateMode))
+			if (!noUpdateMode)
 				updateAndRepaintWindow();
 			else
 				img = null;
@@ -1343,7 +1368,12 @@ public class ImagePlus implements ImageObserver, Measurements {
 		killRoi();
 		switch (Toolbar.getToolId()) {
 			case Toolbar.RECTANGLE:
-				roi = new Roi(sx, sy, this, Toolbar.getRoundRectArcSize());
+				int cornerDiameter = Toolbar.getRoundRectArcSize();
+				roi = new Roi(sx, sy, this, cornerDiameter);
+				if (cornerDiameter>0) {
+					roi.setStrokeColor(Toolbar.getForegroundColor());
+					roi.setStrokeWidth(RectToolOptions.getDefaultStrokeWidth());
+				}
 				break;
 			case Toolbar.OVAL:
 				if (Toolbar.getOvalToolType()==Toolbar.ELLIPSE_ROI)
@@ -1388,7 +1418,7 @@ public class ImagePlus implements ImageObserver, Measurements {
 
 	/** Deletes the current region of interest. Makes a copy
 		of the current ROI so it can be recovered by the
-		Edit/Restore Selection command. */
+		Edit/Selection/Restore Selection command. */
 	public void killRoi() {
 		if (roi!=null) {
 			saveRoi();
@@ -1403,7 +1433,7 @@ public class ImagePlus implements ImageObserver, Measurements {
 		if (roi!=null) {
 			roi.endPaste();
 			Rectangle r = roi.getBounds();
-			if (r.width>0 && r.height>0) {
+			if ((r.width>0 || r.height>0)) {
 				Roi.previousRoi = (Roi)roi.clone();
 				if (IJ.debugMode) IJ.log("saveRoi: "+roi);
 			}
@@ -2002,7 +2032,7 @@ public class ImagePlus implements ImageObserver, Measurements {
 	
 	/** Returns true if this is a CompositeImage. */
 	public boolean isComposite() {
-		return compositeImage && getNChannels()>=1 && (this instanceof CompositeImage);
+		return compositeImage && nChannels>=1 && (this instanceof CompositeImage);
 	}
 
 	/** Sets the display range of the current channel. With non-composite
@@ -2067,15 +2097,6 @@ public class ImagePlus implements ImageObserver, Measurements {
 		imp2.setRoi(getRoi());	
 		ImageCanvas ic = getCanvas();
 		Overlay overlay2 = getOverlay();
-		int n = overlay2!=null?overlay2.size():0;
-		int stackSize = getStackSize();
-		if (n>1 && n==stackSize && ic2.stackLabels(overlay2)) { // created by Image>Stacks>Label
-			int index = getCurrentSlice()-1;
-			if (index<n) {
-				overlay2.temporarilyHide(0, index-1);
-				overlay2.temporarilyHide(index+1, stackSize-1);
-			}
-		}
 		ic2.setOverlay(overlay2);
 		if (ic!=null) {
 			ic2.setShowAllROIs(ic.getShowAllROIs());
@@ -2151,6 +2172,17 @@ public class ImagePlus implements ImageObserver, Measurements {
 
 	public boolean getHideOverlay() {
 		return hideOverlay;
+	}
+
+	/** Returns a shallow copy of this ImagePlus. */
+	public synchronized Object clone() {
+		try {
+			ImagePlus copy = (ImagePlus)super.clone();
+			copy.win = null;
+			return copy;
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
 	}
 
     public String toString() {

@@ -85,8 +85,6 @@ public class PolygonRoi extends Roi {
 			Prefs.pointAutoMeasure = false;
 			Prefs.pointAutoNextSlice = false;
 			Prefs.pointAddToManager = false;
-			if (Toolbar.getToolId()==Toolbar.POINT)
-				Prefs.noPointLabels = false;
 			userCreated = true;
 		}
 		if (lineWidth>1 && isLine())
@@ -187,7 +185,7 @@ public class PolygonRoi extends Roi {
         }
         if ((xSpline!=null||type==POLYGON||type==POLYLINE||type==ANGLE)
         && state!=CONSTRUCTING && clipboard==null && !overlay) {
-            mag = ic!=null?ic.getMagnification():1.0;
+            mag = getMagnification();
             int size2 = HANDLE_SIZE/2;
             if (activeHandle>0)
                 drawHandle(g, xp2[activeHandle-1]-size2, yp2[activeHandle-1]-size2);
@@ -216,11 +214,11 @@ public class PolygonRoi extends Roi {
 		GeneralPath path = new GeneralPath();
 		if (mag==1f && srcx==0f && srcy==0f) {
 			path.moveTo(xpoints[0]+xf, ypoints[0]+yf);
-			for (int i=0; i<npoints; i++)
+			for (int i=1; i<npoints; i++)
 				path.lineTo(xpoints[i]+xf, ypoints[i]+yf);
 		} else {
 			path.moveTo((xpoints[0]-srcx+xf)*mag, (ypoints[0]-srcy+yf)*mag);
-			for (int i=0; i<npoints; i++)
+			for (int i=1; i<npoints; i++)
 				path.lineTo((xpoints[i]-srcx+xf)*mag, (ypoints[i]-srcy+yf)*mag);
 		}
 		if (closed)
@@ -264,9 +262,12 @@ public class PolygonRoi extends Roi {
 
 
 	protected void updatePolygon() {
-		if (ic==null) return;
-		Rectangle srcRect = ic.getSrcRect();
-		if (ic.getMagnification()==1.0 && srcRect.x==0 && srcRect.y==0) {
+		int basex=0, basey=0;
+		if (ic!=null) {
+			Rectangle srcRect = ic.getSrcRect();
+			basex=srcRect.x; basey=srcRect.y;
+		}
+		if (getMagnification()==1.0 && basex==0 && basey==0) {
 			if (xpf!=null) {
 				for (int i=0; i<nPoints; i++) {
 					xp2[i] = (int)(xpf[i]+x);
@@ -519,7 +520,7 @@ public class PolygonRoi extends Roi {
 		xClipMin=ox-m; yClipMin=oy-m; xClipMax=ox+m; yClipMax=oy+m;
 	}
 
-	void deleteHandle(int ox, int oy) {
+	public void deleteHandle(int ox, int oy) {
 		if (imp==null) return;
 		if (nPoints<=1)
 			{imp.killRoi(); return;}
@@ -675,6 +676,7 @@ public class PolygonRoi extends Roi {
 		that can be retrieved using the getFloatPolygon() method. */
 	public void fitSplineForStraightening() {
 		fitSpline((int)getUncalibratedLength()*2);
+		if (splinePoints==0) return;
 		float[] xpoints = new float[splinePoints*2];
 		float[] ypoints = new float[splinePoints*2];
 		xpoints[0] = xSpline[0];
@@ -718,12 +720,10 @@ public class PolygonRoi extends Roi {
 	}
 
 	public double getUncalibratedLength() {
-		if (imp==null) return nPoints/2;
-		Calibration cal = imp.getCalibration();
-		double spw=cal.pixelWidth, sph=cal.pixelHeight;
-		cal.pixelWidth=1.0; cal.pixelHeight=1.0;
+		ImagePlus saveImp = imp;
+		imp = null;
 		double length = getLength();
-		cal.pixelWidth=spw; cal.pixelHeight=sph;
+		imp = saveImp;
 		return length;
 	}
 	
@@ -987,8 +987,7 @@ public class PolygonRoi extends Roi {
 			return nPoints;
 	}
 	
-	/** Returns this ROI's X-coordinates, which are relative
-		to origin of the bounding box. */
+	/** Obsolete; replaced by either getPolygon() or getFloatPolygon(). */
 	public int[] getXCoordinates() {
 		if (xSpline!=null)
 			return toInt(xSpline);
@@ -998,8 +997,7 @@ public class PolygonRoi extends Roi {
 			return xp;
 	}
 
-	/** Returns this ROI's Y-coordinates, which are relative
-		to origin of the bounding box. */
+	/** Obsolete; replaced by either getPolygon() or getFloatPolygon(). */
 	public int[] getYCoordinates() {
 		if (xSpline!=null)
 			return toInt(ySpline);
@@ -1186,20 +1184,4 @@ public class PolygonRoi extends Roi {
 		maxPoints *= 2;
 	}
 	
-	private int[] toInt(float[] arr) {
-		int n = arr.length;
-		int[] temp = new int[n];
-		for (int i=0; i<n; i++)
-			temp[i] = (int)Math.floor(arr[i]+0.5);
-		return temp;
-	}
-
-	private float[] toFloat(int[] arr) {
-		int n = arr.length;
-		float[] temp = new float[n];
-		for (int i=0; i<n; i++)
-			temp[i] = arr[i];
-		return temp;
-	}
-
 }

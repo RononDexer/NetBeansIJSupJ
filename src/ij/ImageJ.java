@@ -72,7 +72,7 @@ public class ImageJ extends Frame implements ActionListener,
 	MouseListener, KeyListener, WindowListener, ItemListener, Runnable {
 
 	/** Plugins should call IJ.getVersion() to get the version string. */
-	public static final String VERSION = "1.45a";
+	public static final String VERSION = "1.45s";
 	public static final String BUILD = ""; 
 	public static Color backgroundColor = new Color(220,220,220); //224,226,235
 	/** SansSerif, 12-point, plain font. */
@@ -202,18 +202,22 @@ public class ImageJ extends Frame implements ActionListener,
  	}
     	
 	void configureProxy() {
-		String server = Prefs.get("proxy.server", null);
-		if (server==null||server.equals("")) return;
-		int port = (int)Prefs.get("proxy.port", 0);
-		if (port==0) return;
-		String user = Prefs.get("proxy.user", null);	
-		Properties props = System.getProperties();
-		props.put("proxySet", "true");
-		props.put("http.proxyHost", server);
-		props.put("http.proxyPort", ""+port);
-		if (user!=null)
-			props.put("http.proxyUser", user);
-		//IJ.log(server+"  "+port+"  "+user);
+		if (Prefs.useSystemProxies) {
+			try {
+				System.setProperty("java.net.useSystemProxies", "true");
+			} catch(Exception e) {}
+		} else {
+			String server = Prefs.get("proxy.server", null);
+			if (server==null||server.equals(""))
+				return;
+			int port = (int)Prefs.get("proxy.port", 0);
+			if (port==0) return;
+			Properties props = System.getProperties();
+			props.put("proxySet", "true");
+			props.put("http.proxyHost", server);
+			props.put("http.proxyPort", ""+port);
+		}
+		//new ProxySettings().logProperties();
 	}
 	
     void setIcon() throws Exception {
@@ -281,9 +285,14 @@ public class ImageJ extends Frame implements ActionListener,
 		if ((e.getSource() instanceof MenuItem)) {
 			MenuItem item = (MenuItem)e.getSource();
 			String cmd = e.getActionCommand();
+			ImagePlus imp = null;
 			if (item.getParent()==Menus.openRecentMenu) {
 				new RecentOpener(cmd); // open image in separate thread
 				return;
+			} else if (item.getParent()==Menus.getPopupMenu()) {
+				Object parent = Menus.getPopupMenu().getParent();
+				if (parent instanceof ImageCanvas)
+					imp = ((ImageCanvas)parent).getImage();
 			}
 			int flags = e.getModifiers();
 			//IJ.log(""+KeyEvent.getKeyModifiersText(flags));
@@ -295,7 +304,7 @@ public class ImageJ extends Frame implements ActionListener,
 					IJ.setKeyDown(KeyEvent.VK_ALT);
 				if ((flags & Event.SHIFT_MASK)!=0)
 					IJ.setKeyDown(KeyEvent.VK_SHIFT);
-				doCommand(cmd);
+				new Executer(cmd, imp);
 			}
 			lastKeyCommand = null;
 			if (IJ.debugMode) IJ.log("actionPerformed: time="+ellapsedTime+", "+e);
@@ -336,25 +345,25 @@ public class ImageJ extends Frame implements ActionListener,
 		int keyCode = e.getKeyCode();
 		IJ.setKeyDown(keyCode);
 		hotkey = false;
-		if (keyCode==e.VK_CONTROL || keyCode==e.VK_SHIFT)
+		if (keyCode==KeyEvent.VK_CONTROL || keyCode==KeyEvent.VK_SHIFT)
 			return;
 		char keyChar = e.getKeyChar();
 		int flags = e.getModifiers();
 		if (IJ.debugMode) IJ.log("keyPressed: code=" + keyCode + " (" + KeyEvent.getKeyText(keyCode)
 			+ "), char=\"" + keyChar + "\" (" + (int)keyChar + "), flags="
 			+ KeyEvent.getKeyModifiersText(flags));
-		boolean shift = (flags & e.SHIFT_MASK) != 0;
-		boolean control = (flags & e.CTRL_MASK) != 0;
-		boolean alt = (flags & e.ALT_MASK) != 0;
-		boolean meta = (flags & e.META_MASK) != 0;
-		String cmd = "";
+		boolean shift = (flags & KeyEvent.SHIFT_MASK) != 0;
+		boolean control = (flags & KeyEvent.CTRL_MASK) != 0;
+		boolean alt = (flags & KeyEvent.ALT_MASK) != 0;
+		boolean meta = (flags & KeyEvent.META_MASK) != 0;
+		String cmd = null;
 		ImagePlus imp = WindowManager.getCurrentImage();
 		boolean isStack = (imp!=null) && (imp.getStackSize()>1);
 		
 		if (imp!=null && !control && ((keyChar>=32 && keyChar<=255) || keyChar=='\b' || keyChar=='\n')) {
 			Roi roi = imp.getRoi();
 			if (roi instanceof TextRoi) {
-				if ((flags & e.META_MASK)!=0 && IJ.isMacOSX()) return;
+				if ((flags & KeyEvent.META_MASK)!=0 && IJ.isMacOSX()) return;
 				if (alt)
 					switch (keyChar) {
 						case 'u': case 'm': keyChar = IJ.micronSymbol; break;
@@ -394,8 +403,8 @@ public class ImageJ extends Frame implements ActionListener,
 			switch (keyChar) {
 				case '<': case ',': cmd="Previous Slice [<]"; break;
 				case '>': case '.': case ';': cmd="Next Slice [>]"; break;
-				case '+': case '=': cmd="In"; break;
-				case '-': cmd="Out"; break;
+				case '+': case '=': cmd="In [+]"; break;
+				case '-': cmd="Out [-]"; break;
 				case '/': cmd="Reslice [/]..."; break;
 				default:
 			}
@@ -406,8 +415,8 @@ public class ImageJ extends Frame implements ActionListener,
 				case KeyEvent.VK_TAB: WindowManager.putBehind(); return;
 				case KeyEvent.VK_BACK_SPACE: cmd="Clear"; hotkey=true; break; // delete
 				//case KeyEvent.VK_BACK_SLASH: cmd=IJ.altKeyDown()?"Animation Options...":"Start Animation"; break;
-				case KeyEvent.VK_EQUALS: cmd="In"; break;
-				case KeyEvent.VK_MINUS: cmd="Out"; break;
+				case KeyEvent.VK_EQUALS: cmd="In [+]"; break;
+				case KeyEvent.VK_MINUS: cmd="Out [-]"; break;
 				case KeyEvent.VK_SLASH: case 0xbf: cmd="Reslice [/]..."; break;
 				case KeyEvent.VK_COMMA: case 0xbc: cmd="Previous Slice [<]"; break;
 				case KeyEvent.VK_PERIOD: case 0xbe: cmd="Next Slice [>]"; break;
@@ -423,9 +432,9 @@ public class ImageJ extends Frame implements ActionListener,
 					else if (stackKey && keyCode==KeyEvent.VK_LEFT)
 							cmd="Previous Slice [<]";
 					else if (zoomKey && keyCode==KeyEvent.VK_DOWN && !ignoreArrowKeys(imp))
-							cmd="Out";
+							cmd="Out [-]";
 					else if (zoomKey && keyCode==KeyEvent.VK_UP && !ignoreArrowKeys(imp))
-							cmd="In";
+							cmd="In [+]";
 					else if (roi!=null) {
 						if ((flags & KeyEvent.ALT_MASK) != 0)
 							roi.nudgeCorner(keyCode);
@@ -612,7 +621,7 @@ public class ImageJ extends Frame implements ActionListener,
 			} else if (macros==0 && (arg.endsWith(".ijm") || arg.endsWith(".txt"))) {
 				IJ.runMacroFile(arg);
 				macros++;
-			} else if (arg.indexOf("ij.ImageJ")==-1) {
+			} else if (arg.length()>0 && arg.indexOf("ij.ImageJ")==-1) {
 				File file = new File(arg);
 				IJ.open(file.getAbsolutePath());
 			}
@@ -623,10 +632,10 @@ public class ImageJ extends Frame implements ActionListener,
 	}
 	
 	// Is there another instance of ImageJ? If so, send it the arguments and quit.
-	static boolean isRunning(String args[]) {
+	static boolean isRunning(String[] args) {
 		if (IJ.debugMode) IJ.log("isRunning: "+args.length);
 		int macros = 0;
-		int nArgs = args.length;
+		int nArgs = args!=null?args.length:0;
 		//if (nArgs==2 && args[0].startsWith("-ijpath"))
 		//	return false;
 		int nCommands = 0;
@@ -652,7 +661,7 @@ public class ImageJ extends Frame implements ActionListener,
 				} else if (arg.startsWith("-run") && i+1<nArgs) {
 					cmd = "run " + args[i+1];
 					args[i+1] = null;
-				} else if (arg.indexOf("ij.ImageJ")==-1 && !arg.startsWith("-"))
+				} else if (arg.indexOf("ij.ImageJ")==-1 && arg.length()>0 && !arg.startsWith("-"))
 					cmd = "open " + arg;
 				if (cmd!=null) {
 					sendArgument(cmd);
@@ -736,7 +745,7 @@ public class ImageJ extends Frame implements ActionListener,
 			Prefs.savePreferences();
 		}
 		IJ.cleanup();
-		setVisible(false);
+		//setVisible(false);
 		//IJ.log("dispose");
 		dispose();
 		if (exitWhenQuitting)

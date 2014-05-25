@@ -10,7 +10,6 @@ import ij.plugin.frame.Editor;
 import ij.text.TextWindow;
 import java.awt.event.KeyEvent;
 
-
 /** Compiles and runs plugins using the javac compiler. */
 public class Compiler implements PlugIn, FilenameFilter {
 

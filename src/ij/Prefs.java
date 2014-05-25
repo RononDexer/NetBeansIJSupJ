@@ -50,6 +50,10 @@ public class Prefs {
 		AVOID_RESLICE_INTERPOLATION=1<<29, KEEP_UNDO_BUFFERS=1<<30; 
     public static final String OPTIONS = "prefs.options";
     
+	private static final int USE_SYSTEM_PROXIES=1<<0;
+	private static final int USE_FILE_CHOOSER=1<<1;
+	public static final String OPTIONS2 = "prefs.options2";
+    
 	public static final String vistaHint = "\n \nOn Windows Vista, ImageJ must be installed in a directory that\nthe user can write to, such as \"Desktop\" or \"Documents\"";
 
 	/** file.separator system property */
@@ -85,7 +89,7 @@ public class Prefs {
 	/** Double buffer display of selections and overlays. */
 	public static boolean doubleBuffer = true;
 	/** Do not label multiple points created using point tool. */
-	public static boolean noPointLabels = true;
+	public static boolean noPointLabels;
 	/** Disable Edit/Undo command. */
 	public static boolean disableUndo;
 	/** Do not draw black border around image. */
@@ -126,6 +130,12 @@ public class Prefs {
 	public static boolean avoidResliceInterpolation;
 	/** Preserve undo (snapshot) buffers when switching images */
 	public static boolean keepUndoBuffers;
+	/** Use ROI names as "show all" labels in the ROI Manager */
+	public static boolean useNamesAsLabels;
+	/** Set the "java.net.useSystemProxies" property */
+	public static boolean useSystemProxies;
+	/** Use the file chooser to import and export image sequences on Windows and Linux*/
+	public static boolean useFileChooser;
 
 
 	static Properties ijPrefs = new Properties();
@@ -375,7 +385,9 @@ public class Prefs {
 	}
 
 	static void loadOptions() {
-		int options = getInt(OPTIONS, ANTIALIASING);
+		int defaultOptions = ANTIALIASING+AVOID_RESLICE_INTERPOLATION
+			+(!IJ.isMacOSX()?RUN_SOCKET_LISTENER:0);
+		int options = getInt(OPTIONS, defaultOptions);
 		usePointerCursor = (options&USE_POINTER)!=0;
 		//antialiasedText = (options&ANTIALIASING)!=0;
 		antialiasedText = false;
@@ -394,7 +406,7 @@ public class Prefs {
 		antialiasedTools = (options&ANTIALIASED_TOOLS)!=0;
 		intelByteOrder = (options&INTEL_BYTE_ORDER)!=0;
 		// doubleBuffer = (options&DOUBLE_BUFFER)!=0; // always double buffer
-		noPointLabels = (options&NO_POINT_LABELS)!=0;
+		//noPointLabels = (options&NO_POINT_LABELS)!=0;
 		noBorder = (options&NO_BORDER)!=0;
 		showAllSliceOnly = (options&SHOW_ALL_SLICE_ONLY)!=0;
 		copyColumnHeaders = (options&COPY_HEADERS)!=0;
@@ -410,6 +422,11 @@ public class Prefs {
 		noClickToGC = (options&NO_CLICK_TO_GC)!=0;
 		avoidResliceInterpolation = (options&AVOID_RESLICE_INTERPOLATION)!=0;
 		keepUndoBuffers = (options&KEEP_UNDO_BUFFERS)!=0;
+		
+		defaultOptions = (!IJ.isMacOSX()?USE_FILE_CHOOSER:0);
+		int options2 = getInt(OPTIONS2, defaultOptions);
+		useSystemProxies = (options2&USE_SYSTEM_PROXIES)!=0;
+		useFileChooser = (options2&USE_FILE_CHOOSER)!=0;
 	}
 
 	static void saveOptions(Properties prefs) {
@@ -430,6 +447,10 @@ public class Prefs {
 			+ (avoidResliceInterpolation?AVOID_RESLICE_INTERPOLATION:0)
 			+ (keepUndoBuffers?KEEP_UNDO_BUFFERS:0);
 		prefs.put(OPTIONS, Integer.toString(options));
+
+		int options2 = (useSystemProxies?USE_SYSTEM_PROXIES:0)
+			+ (useFileChooser?USE_FILE_CHOOSER:0);
+		prefs.put(OPTIONS2, Integer.toString(options2));
 	}
 
 	/** Saves the value of the string <code>text</code> in the preferences
@@ -573,6 +594,6 @@ public class Prefs {
 	public static Properties getControlPanelProperties() {
 		return ijPrefs;
 	}
-
+	
 }
 

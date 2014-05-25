@@ -278,6 +278,8 @@ public class IJ {
 			commandTable.put("List Commands...", "Find Commands...");
 			commandTable.put("Capture Screen ", "Capture Screen");
 			commandTable.put("Add to Manager ", "Add to Manager");
+			commandTable.put("In", "In [+]");
+			commandTable.put("Out", "Out [-]");
 		}
 		String command2 = (String)commandTable.get(command);
 		if (command2!=null)
@@ -523,8 +525,11 @@ public class IJ {
 		showMessage("Message", msg);
 	}
 
-	/**	Displays a message in a dialog box with the specified title.
-		Writes the Java console if ImageJ is not present. */
+	/** Displays a message in a dialog box with the specified title.
+		Displays HTML formatted text if 'msg' starts with "<html>".
+		There are examples at
+		"http://imagej.nih.gov/ij/macros/HtmlDialogDemo.txt".
+		Writes to the Java console if ImageJ is not present. */
 	public static void showMessage(String title, String msg) {
 		if (ij!=null) {
 			if (msg!=null && msg.startsWith("<html>"))
@@ -554,7 +559,8 @@ public class IJ {
 		boolean abortMacro = title!=null;
 		if (redirectErrorMessages || redirectErrorMessages2) {
 			IJ.log(title2 + ": " + msg);
-			if (abortMacro && title.equals("Opener")) abortMacro = false;
+			if (abortMacro && (title.equals("Opener")||title.equals("Open URL")||title.equals("DicomDecoder")))
+				abortMacro = false;
 		} else
 			showMessage(title2, msg);
 		redirectErrorMessages = false;
@@ -728,6 +734,14 @@ public class IJ {
 		if (decimalPlaces<0) decimalPlaces = 0;
 		if (decimalPlaces>9) decimalPlaces = 9;
 		return df[decimalPlaces].format(n);
+	}
+
+	/** Pad 'n' with leading zeros to the specified number of digits. */
+	public static String pad(int n, int digits) {
+		String str = ""+n;
+		while (str.length()<digits)
+			str = "0"+str;
+		return str;
 	}
 
 	/** Adds the specified class to a Vector to keep it from being garbage
@@ -960,6 +974,10 @@ public class IJ {
 			Polygon p = roi.getPolygon();
 			p.addPoint(x, y);
 			img.setRoi(new PointRoi(p.xpoints, p.ypoints, p.npoints));
+			IJ.setKeyUp(KeyEvent.VK_SHIFT);
+		} else if (altKeyDown() && roi!=null && roi.getType()==Roi.POINT) {
+			((PolygonRoi)roi).deleteHandle(x, y);
+			IJ.setKeyUp(KeyEvent.VK_ALT);
 		} else
 			img.setRoi(new PointRoi(x, y));
 	}
@@ -1051,17 +1069,56 @@ public class IJ {
 		}
 	}
 
-	public static void setAutoThreshold(ImagePlus img, String method) {
-		ImageProcessor ip = img.getProcessor();
+	public static void setAutoThreshold(ImagePlus imp, String method) {
+		ImageProcessor ip = imp.getProcessor();
 		if (ip instanceof ColorProcessor)
 			throw new IllegalArgumentException("Non-RGB image required");
-		ip.setRoi(img.getRoi());
+		ip.setRoi(imp.getRoi());
 		if (method!=null) {
-			try {ip.setAutoThreshold(method);}
-			catch (Exception e) {IJ.log(e.getMessage());}
+			try {
+				if (method.indexOf("stack")!=-1)
+					setStackThreshold(imp, ip, method);
+				else
+					ip.setAutoThreshold(method);
+			} catch (Exception e) {
+				log(e.getMessage());
+			}
 		} else
 			ip.setAutoThreshold(ImageProcessor.ISODATA2, ImageProcessor.RED_LUT);
-		img.updateAndDraw();
+		imp.updateAndDraw();
+	}
+	
+	private static void setStackThreshold(ImagePlus imp, ImageProcessor ip, String method) {
+		boolean darkBackground = method.indexOf("dark")!=-1;
+		ImageStatistics stats = new StackStatistics(imp);
+		AutoThresholder thresholder = new AutoThresholder();
+		double min=0.0, max=255.0;
+		if (imp.getBitDepth()!=8) {
+			min = stats.min;
+			max = stats.max;
+		}
+		int threshold = thresholder.getThreshold(method, stats.histogram);
+		double lower, upper;
+		if (darkBackground) {
+			if (ip.isInvertedLut())
+				{lower=0.0; upper=threshold;}
+			else
+				{lower=threshold+1; upper=255.0;}
+		} else {
+			if (ip.isInvertedLut())
+				{lower=threshold+1; upper=255.0;}
+			else
+				{lower=0.0; upper=threshold;}
+		}
+		if (lower>255) lower = 255;
+		if (max>min) {
+			lower = min + (lower/255.0)*(max-min);
+			upper = min + (upper/255.0)*(max-min);
+		} else
+			lower = upper = min;
+		ip.setMinAndMax(min, max);
+		ip.setThreshold(lower, upper, ImageProcessor.RED_LUT);
+		imp.updateAndDraw();
 	}
 
 	/** Disables thresholding on the current image. */
@@ -1195,7 +1252,7 @@ public class IJ {
 	/** Equivalent to clicking on the current image at (x,y) with the
 		wand tool. Returns the number of points in the resulting ROI. */
 	public static int doWand(int x, int y) {
-		return doWand(x, y, 0, null);
+		return doWand(getImage(), x, y, 0, null);
 	}
 
 	/** Traces the boundary of the area with pixel values within
@@ -1206,7 +1263,11 @@ public class IJ {
 	* it is ignored if 'tolerance' > 0.
 	*/
 	public static int doWand(int x, int y, double tolerance, String mode) {
-		ImagePlus img = getImage();
+		return doWand(getImage(), x, y, tolerance, mode);
+	}
+
+	/** This version of doWand adds an ImagePlus argument. */
+	public static int doWand(ImagePlus img, int x, int y, double tolerance, String mode) {
 		ImageProcessor ip = img.getProcessor();
 		if ((img.getType()==ImagePlus.GRAY32) && Double.isNaN(ip.getPixelValue(x,y)))
 			return 0;
@@ -1434,7 +1495,8 @@ public class IJ {
 	}
 
 	/** Saves the specified image, lookup table or selection to the specified file path. 
-		The path must end in ".tif", ".jpg", ".gif", ".zip", ".raw", ".avi", ".bmp", ".fits", ".pgm", ".png", ".lut", ".roi" or ".txt".  */
+		The file path must end with ".tif", ".jpg", ".gif", ".zip", ".raw", ".avi", ".bmp", 
+		".fits", ".pgm", ".png", ".lut", ".roi" or ".txt". */
 	public static void save(ImagePlus imp, String path) {
 		int dotLoc = path.lastIndexOf('.');
 		if (dotLoc!=-1) {
@@ -1444,7 +1506,7 @@ public class IJ {
 			saveAs(imp, path.substring(dotLoc+1), path);
 			if (title!=null) imp2.setTitle(title);
 		} else
-			error("The save() macro function requires a file name extension.\n \n"+path);
+			error("The file path passed to IJ.save() method or save()\nmacro function is missing the required extension.\n \n\""+path+"\"");
 	}
 
 	/* Saves the active image, lookup table, selection, measurement results, selection XY 
@@ -1484,7 +1546,7 @@ public class IJ {
 			path = updateExtension(path, ".zip");
 			format = "ZIP...";
 		} else if (format.indexOf("raw")!=-1) {
-			path = updateExtension(path, ".raw");
+			//path = updateExtension(path, ".raw");
 			format = "Raw Data...";
 		} else if (format.indexOf("avi")!=-1) {
 			path = updateExtension(path, ".avi");
@@ -1513,7 +1575,7 @@ public class IJ {
 			path = updateExtension(path, ".txt");
 			format = "XY Coordinates...";
 		} else
-			error("Unrecognized format: "+format);
+			error("Unsupported save() or saveAs() file format: \""+format+"\"\n \n\""+path+"\"");
 		if (path==null)
 			run(format);
 		else
@@ -1734,7 +1796,7 @@ public class IJ {
 		e.printStackTrace(pw);
 		String s = caw.toString();
 		if (getInstance()!=null)
-			new TextWindow("Exception", s, 350, 250);
+			new TextWindow("Exception", s, 500, 300);
 		else
 			log(s);
 	}

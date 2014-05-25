@@ -10,6 +10,7 @@ import ij.measure.*;
 import ij.plugin.frame.Recorder;
 import ij.plugin.filter.Analyzer;
 import ij.macro.Interpreter;
+import ij.io.RoiDecoder;
 
 /** A rectangular region of interest and superclass for the other ROI classes. */
 public class Roi extends Object implements Cloneable, java.io.Serializable {
@@ -26,7 +27,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	int activeHandle;
 	int state;
 	int modState = NO_MODS;
-	int arcSize;
+	int cornerDiameter;
 	
 	public static Roi previousRoi;
 	public static final BasicStroke onePixelWide = new BasicStroke(1);
@@ -49,7 +50,6 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	protected boolean updateFullWindow;
 	protected double mag = 1.0;
 	protected double asp_bk; //saves aspect ratio if resizing takes roi very small
-	protected String name;
 	protected ImageProcessor cachedMask;
 	protected Color handleColor = Color.white;
 	protected Color  strokeColor;
@@ -59,9 +59,10 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	protected boolean nonScalable;
 	protected boolean overlay;
 	protected boolean wideLine;
-	protected boolean hide;
-
-
+	private String name;
+	private int position;
+	private int channel, slice, frame;
+	private Overlay prototypeOverlay;
 
 	/** Creates a new rectangular Roi. */
 	public Roi(int x, int y, int width, int height) {
@@ -69,13 +70,13 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	}
 
 	/** Creates a new rounded rectangular Roi. */
-	public Roi(int x, int y, int width, int height, int arcSize) {
+	public Roi(int x, int y, int width, int height, int cornerDiameter) {
 		setImage(null);
 		if (width<1) width = 1;
 		if (height<1) height = 1;
 		if (width>xMax) width = xMax;
 		if (height>yMax) height = yMax;
-		this.arcSize = arcSize;
+		this.cornerDiameter = cornerDiameter;
 		//setLocation(x, y);
 		this.x = x;
 		this.y = y;
@@ -112,7 +113,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	
 	/** Starts the process of creating a user-defined rectangular Roi,
 		where sx and sy are the starting screen coordinates. */
-	public Roi(int sx, int sy, ImagePlus imp, int arcSize) {
+	public Roi(int sx, int sy, ImagePlus imp, int cornerDiameter) {
 		setImage(imp);
 		int ox=sx, oy=sy;
 		if (ic!=null) {
@@ -120,7 +121,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 			oy = ic.offScreenY(sy);
 		}
 		setLocation(ox, oy);
-		this.arcSize = arcSize;
+		this.cornerDiameter = cornerDiameter;
 		width = 0;
 		height = 0;
 		state = CONSTRUCTING;
@@ -169,7 +170,8 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 		}
 	}
 	
-	ImagePlus getImage() {
+	/** Returns the ImagePlus associated with this ROI, or null. */
+	public ImagePlus getImage() {
 		return imp;
 	}
 	
@@ -339,7 +341,11 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	}
 
 	public FloatPolygon getFloatPolygon() {
-		return null;
+		Polygon p = getPolygon();
+		if (p!=null)
+			return new FloatPolygon(toFloat(p.xpoints), toFloat(p.ypoints), p.npoints);
+		else
+			return null;
 	}
 	
 	/** Returns a copy of this roi. See Thinking is Java by Bruce Eckel
@@ -627,7 +633,8 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 		int yNew = ic.offScreenY(sy);
 		x += xNew - startX;
 		y += yNew - startY;
-		if (clipboard==null && type==RECTANGLE) {
+		boolean isImageRoi = this instanceof ImageRoi;
+		if (clipboard==null && type==RECTANGLE && !isImageRoi) {
 			if (x<0) x=0; if (y<0) y=0;
 			if ((x+width)>xMax) x = xMax-width;
 			if ((y+height)>yMax) y = yMax-height;
@@ -643,6 +650,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 		oldY = y;
 		oldWidth = width;
 		oldHeight=height;
+		if (isImageRoi) showStatus();
 	}
 
 	/** Nudge ROI one pixel on arrow key press. */
@@ -755,17 +763,16 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	}
 	
 	public void draw(Graphics g) {
-		if (ic==null) return;
 		Color color =  strokeColor!=null? strokeColor:ROIColor;
 		if (fillColor!=null) color = fillColor;
-		if (Interpreter.isBatchMode() && ic.getDisplayList()!=null && strokeColor==null && fillColor==null)
+		if (Interpreter.isBatchMode() && ic!=null && ic.getDisplayList()!=null && strokeColor==null && fillColor==null)
 			return;
 		g.setColor(color);
-		mag = ic.getMagnification();
+		mag = getMagnification();
 		int sw = (int)(width*mag);
 		int sh = (int)(height*mag);
-		int sx1 = ic.screenX(x);
-		int sy1 = ic.screenY(y);
+		int sx1 = screenX(x);
+		int sy1 = screenY(y);
 		int sx2 = sx1+sw/2;
 		int sy2 = sy1+sh/2;
 		int sx3 = sx1+sw;
@@ -773,8 +780,9 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 		Graphics2D g2d = (Graphics2D)g;
 		if (stroke!=null)
 			g2d.setStroke(getScaledStroke());
-		if (arcSize>0) {
-			int sArcSize = (int)Math.round(arcSize*mag);
+		if (cornerDiameter>0) {
+			int sArcSize = (int)Math.round(cornerDiameter*mag);
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			if (fillColor!=null)
 				g.fillRoundRect(sx1, sy1, sw, sh, sArcSize, sArcSize);
 			else
@@ -856,18 +864,18 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	*/
 	public void drawPixels(ImageProcessor ip) {
 		endPaste();
-		if (arcSize>0)
-			(new ShapeRoi(new RoundRectangle2D.Float(x, y, width, height, arcSize, arcSize))).drawPixels(ip);
+		int saveWidth = ip.getLineWidth();
+		if (getStrokeWidth()>1f)
+			ip.setLineWidth((int)Math.round(getStrokeWidth()));
+		if (cornerDiameter>0)
+			(new ShapeRoi(new RoundRectangle2D.Float(x, y, width, height, cornerDiameter, cornerDiameter))).drawPixels(ip);
 		else {
-			int saveWidth = ip.getLineWidth();
-			if (getStrokeWidth()>1f)
-				ip.setLineWidth((int)Math.round(getStrokeWidth()));
 			if (ip.getLineWidth()==1)
 				ip.drawRect(x, y, width+1, height+1);
 			else
 				ip.drawRect(x, y, width, height);
-			ip.setLineWidth(saveWidth);
 		}
+		ip.setLineWidth(saveWidth);
 		if (Line.getWidth()>1 || getStrokeWidth()>1)
 			updateFullWindow = true;
 	}
@@ -875,9 +883,9 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	public boolean contains(int x, int y) {
 		Rectangle r = new Rectangle(this.x, this.y, width, height);
 		boolean contains = r.contains(x, y);
-		if (arcSize==0 || contains==false)
+		if (cornerDiameter==0 || contains==false)
 			return contains;
-		RoundRectangle2D rr = new RoundRectangle2D.Float(this.x, this.y, width, height, arcSize, arcSize);
+		RoundRectangle2D rr = new RoundRectangle2D.Float(this.x, this.y, width, height, cornerDiameter, cornerDiameter);
 		return rr.contains(x, y);
 	}
 		
@@ -931,13 +939,13 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 			} else if (type==OVAL)
 				Recorder.record("makeOval", x, y, width, height);
 			else if (!(this instanceof TextRoi)) {
-				if (arcSize==0)
+				if (cornerDiameter==0)
 					Recorder.record("makeRectangle", x, y, width, height);
 				else {
 					if (Recorder.scriptMode())
-						Recorder.recordCall("imp.setRoi(new Roi("+x+", "+y+", "+width+", "+height+", "+arcSize+"));");
+						Recorder.recordCall("imp.setRoi(new Roi("+x+", "+y+", "+width+", "+height+", "+cornerDiameter+"));");
 					else
-						Recorder.record("makeRectangle", x, y, width, height, arcSize);
+						Recorder.record("makeRectangle", x, y, width, height, cornerDiameter);
 				}
 			}
 		}
@@ -1030,6 +1038,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
      }
 
 	protected void showStatus() {
+		if (imp==null) return;
 		String value;
 		if (state!=CONSTRUCTING && (type==RECTANGLE||type==POINT) && width<=25 && height<=25) {
 			ImageProcessor ip = imp.getProcessor();
@@ -1050,8 +1059,8 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 		
 	/** Always returns null for rectangular Roi's */
 	public ImageProcessor getMask() {
-		if (arcSize>0)
-			return (new ShapeRoi(new RoundRectangle2D.Float(x, y, width, height, arcSize, arcSize))).getMask();
+		if (cornerDiameter>0)
+			return (new ShapeRoi(new RoundRectangle2D.Float(x, y, width, height, cornerDiameter, cornerDiameter))).getMask();
 		else
 			return null;
 	}
@@ -1143,7 +1152,7 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 		fillColor = color;
 	}
 
-	/** Returns the the color used to fill this ROI when it is in a display, or null.
+	/** Returns the color used to fill this ROI, or null if it is not filled.
 	 * @see #getStrokeColor()
 	 */
 	public Color getFillColor() {
@@ -1195,23 +1204,29 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	}
 
     /** Set 'nonScalable' true to have TextRois in a display 
-		list drawn at a fixed location  and size. */
+		list drawn at a fixed location and size. */
 	public void setNonScalable(boolean nonScalable) {
 		this.nonScalable = nonScalable;
 	}
 
-	/** Sets the width of the lines used to draw this ROI when
-	 * it is part of an Overlay list or ROI Manager "Show All" list.
+	/** Sets the width of the line used to draw this ROI.
 	 * @see #setStrokeColor(Color)
 	 * @see ij.ImagePlus#setOverlay(ij.gui.Overlay)
 	 */
 	public void setStrokeWidth(float width) {
 		//this.stroke = new BasicStroke(width);
-		if (wideLine)
+		if (width==0)
+			stroke = null;
+		else if (wideLine)
 			this.stroke = new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 		else
 			this.stroke = new BasicStroke(width);
 		if (width>1f) fillColor = null;
+	}
+
+	/** This is a version of setStrokeWidth() that accepts a double argument. */
+	public void setStrokeWidth(double width) {
+		setStrokeWidth((float)width);
 	}
 
 	/** Returns the lineWidth. */
@@ -1260,17 +1275,100 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 			imp.updateAndDraw();
 	}
 	
-	/** Sets the rounded rectangle arc size (pixels). */
-	public void setRoundRectArcSize(int size) {
-		arcSize = size;
-		if (arcSize<0) arcSize = 0;
+	/** Sets the rounded rectangle corner diameter (pixels). */
+	public void setCornerDiameter(int cornerDiameter) {
+		if (cornerDiameter<0) cornerDiameter = 0;
+		this.cornerDiameter = cornerDiameter;
 		ImagePlus imp = WindowManager.getCurrentImage();
 		if (imp!=null && this==imp.getRoi())
 			imp.updateAndDraw();
 	}
 
+	/** Returns the rounded rectangle corner diameter (pixels). */
+	public int getCornerDiameter() {
+		return cornerDiameter;
+	}
+	
+	/** Obsolete; replaced by setCornerDiameter(). */
+	public void setRoundRectArcSize(int cornerDiameter) {
+		setCornerDiameter(cornerDiameter);
+	}
+
+	/** Obsolete; replaced by getCornerDiameter(). */
 	public int getRoundRectArcSize() {
-		return arcSize;
+		return cornerDiameter;
+	}
+
+	/** Sets the stack position (image number) of this ROI. In an overlay, this
+	* ROI is only displayed when the stack is at the specified position.
+	* Set to zero to have the ROI displayed on all images in the stack.
+	* @see ij.gui.Overlay
+	*/
+	public void setPosition(int n) {
+		if (n<0) n=0;
+		position = n;
+		channel = slice = frame = 0;
+	} 
+
+	/** Returns the stack position (image number) of this ROI, or
+	*  zero if the ROI is not associated with a particular stack image.
+	* @see ij.gui.Overlay
+	*/
+	public int getPosition() {
+		return position;
+	}
+	
+	/** Sets the hyperstack position of this ROI. In an overlay, this
+	* ROI is only displayed when the hyperstack is at the specified position.
+	* @see ij.gui.Overlay
+	*/
+	public void setPosition(int channel, int slice, int frame) {
+		if (channel<0) channel=0;
+		this.channel = channel;
+		if (slice<0) slice=0;
+		this.slice = slice;
+		if (frame<0) frame=0;
+		this.frame = frame;
+		position = 0;
+	}
+	
+	/** Returns the channel position of this ROI, or zero
+	*  if this ROI is not associated with a particular channel.
+	*/
+	public final int getCPosition() {
+		return channel;
+	}
+
+	/** Returns the slice position of this ROI, or zero
+	*  if this ROI is not associated with a particular slice.
+	*/
+	public final int getZPosition() {
+		return slice;
+	}
+	
+	/** Returns the frame position of this ROI, or zero
+	*  if this ROI is not associated with a particular frame.
+	*/
+	public final int getTPosition() {
+		return frame;
+	}
+
+	// Used by the FileSaver and RoiEncoder to save overlay settings. */
+	public void setPrototypeOverlay(Overlay overlay) {
+		prototypeOverlay = new Overlay();
+		prototypeOverlay.drawLabels(overlay.getDrawLabels());
+		prototypeOverlay.drawNames(overlay.getDrawNames());
+		prototypeOverlay.drawBackgrounds(overlay.getDrawBackgrounds());
+		prototypeOverlay.setLabelColor(overlay.getLabelColor());
+		prototypeOverlay.setLabelFont(overlay.getLabelFont());
+	} 
+
+	// Used by the FileOpener and RoiDecoder to restore overlay settings. */
+	public Overlay getPrototypeOverlay() {
+		if (prototypeOverlay!=null)
+			return prototypeOverlay;
+		else
+			return new Overlay();
 	}
 
 	/** Returns the current paste transfer mode, or NOT_PASTING (-1)
@@ -1302,9 +1400,13 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 	/** Returns 'true' if this is an ROI primarily used from drawing
 		(e.g., Rounded Rectangle, TextRoi or Arrow). */
     public boolean isDrawingTool() {
-        return arcSize>0;
+        return cornerDiameter>0;
     }
-
+    
+    protected double getMagnification() {
+    	return ic!=null?ic.getMagnification():1.0;
+    }
+    
 	/** Convenience method that converts Roi type to a human-readable form. */
 	public String getTypeAsString() {
 		String s="";
@@ -1341,12 +1443,33 @@ public class Roi extends Object implements Cloneable, java.io.Serializable {
 			return false;
     }
 
+	protected int screenX(int ox) {return ic!=null?ic.screenX(ox):ox;}
+	protected int screenY(int oy) {return ic!=null?ic.screenY(oy):oy;}
+	protected int screenXD(double ox) {return ic!=null?ic.screenXD(ox):(int)ox;}
+	protected int screenYD(double oy) {return ic!=null?ic.screenYD(oy):(int)oy;}
+
+	protected int[] toInt(float[] arr) {
+		int n = arr.length;
+		int[] temp = new int[n];
+		for (int i=0; i<n; i++)
+			temp[i] = (int)Math.floor(arr[i]+0.5);
+		return temp;
+	}
+
+	protected float[] toFloat(int[] arr) {
+		int n = arr.length;
+		float[] temp = new float[n];
+		for (int i=0; i<n; i++)
+			temp[i] = arr[i];
+		return temp;
+	}
+
 	public String toString() {
 		return ("Roi["+getTypeAsString()+", x="+x+", y="+y+", width="+width+", height="+height+"]");
 	}
 
+	/** Deprecated */
 	public void temporarilyHide() {
-		hide = true;
 	}
 
 }

@@ -471,10 +471,12 @@ FocusListener, ItemListener, KeyListener, AdjustmentListener, WindowListener {
 		c.gridwidth = 2;
 		c.anchor = GridBagConstraints.WEST;
 		c.insets = getInsets(text.equals("")?0:10, 20, 0, 0);
+		c.fill = GridBagConstraints.HORIZONTAL;
 		grid.setConstraints(theLabel, c);
 		if (font!=null)
 			theLabel.setFont(font);
 		add(theLabel);
+		c.fill = GridBagConstraints.NONE;
 		y++;
     }
     
@@ -518,7 +520,7 @@ FocusListener, ItemListener, KeyListener, AdjustmentListener, WindowListener {
 		int columns = 4;
 		int digits = 0;
 		double scale = 1.0;
-		if ((maxValue-minValue)<=5.0 && (minValue!=(int)minValue||maxValue!=(int)maxValue)) {
+		if ((maxValue-minValue)<=5.0 && (minValue!=(int)minValue||maxValue!=(int)maxValue||defaultValue!=(int)defaultValue)) {
 			scale = 20.0;
 			minValue *= scale;
 			maxValue *= scale;
@@ -719,7 +721,8 @@ FocusListener, ItemListener, KeyListener, AdjustmentListener, WindowListener {
     	return wasOKed || macro;
     }
 
-	/** Returns the contents of the next numeric field. */
+	/** Returns the contents of the next numeric field,
+		or NaN if the field does not contain a number. */
    public double getNextNumber() {
 		if (numberField==null)
 			return -1.0;
@@ -748,7 +751,7 @@ FocusListener, ItemListener, KeyListener, AdjustmentListener, WindowListener {
 				if (Double.isNaN(value)) {
 					invalidNumber = true;
 					errorMessage = "\""+theText+"\" is an invalid number";
-					value = 0.0;
+					value = Double.NaN;
 					if (macro) {
 						IJ.error("Macro Error", "Numeric value expected in run() function\n \n"
 							+"   Dialog box title: \""+getTitle()+"\"\n"
@@ -797,6 +800,17 @@ FocusListener, ItemListener, KeyListener, AdjustmentListener, WindowListener {
 		return d;
 	}
 
+	public double parseDouble(String s) {
+		if (s==null) return Double.NaN;
+		double value = Tools.parseDouble(s);
+		if (Double.isNaN(value)) {
+			if (s.startsWith("&")) s = s.substring(1);
+			Interpreter interp = Interpreter.getInstance();
+			value = interp!=null?interp.getVariable2(s):Double.NaN;
+		}
+		return value;
+	}
+	
 	/** Returns true if one or more of the numeric fields contained an  
 		invalid number. Must be called after one or more calls to getNextNumber(). */
    public boolean invalidNumber() {
@@ -1031,7 +1045,7 @@ FocusListener, ItemListener, KeyListener, AdjustmentListener, WindowListener {
 		}
 		resetCounters();
 	}
-
+	
     /** Reset the counters before reading the dialog parameters */
     private void resetCounters() {
         nfIndex = 0;        // prepare for readout

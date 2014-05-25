@@ -16,6 +16,8 @@ public class EllipseRoi extends PolygonRoi {
 
 	public EllipseRoi(double x1, double y1, double x2, double y2, double aspectRatio) {
 		super(new float[vertices], new float[vertices], vertices, FREEROI);
+		if (aspectRatio<0.0) aspectRatio = 0.0;
+		if (aspectRatio>1.0) aspectRatio = 1.0;
 		this.aspectRatio = aspectRatio;
 		makeEllipse(x1, y1, x2, y2);
 		state = NORMAL;
@@ -190,6 +192,24 @@ public class EllipseRoi extends PolygonRoi {
 		params[3]  = ypf[handle[0]]+y;
 		params[4]  = aspectRatio;
 		return params;
+	}
+
+	public double[] getFeretValues() {
+		double a[] = super.getFeretValues();
+		double pw=1.0, ph=1.0;
+		if (imp!=null) {
+			Calibration cal = imp.getCalibration();
+			pw = cal.pixelWidth;
+			ph = cal.pixelHeight;
+		}
+		double[] p = getParams();
+		double dx = (p[2] - p[0])*pw;
+		double dy = (p[3] - p[1])*ph;
+		double major = Math.sqrt(dx*dx+dy*dy);
+		double minor = major*p[4];
+		a[0] = major;
+		a[2] = (pw==ph)?minor:a[2];
+		return a;
 	}
 
 }

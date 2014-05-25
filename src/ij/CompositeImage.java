@@ -463,7 +463,7 @@ public class CompositeImage extends ImagePlus {
 		int channels = getNChannels();
 		if (lut==null) setupLuts(channels);
 		if (channel<1 || channel>lut.length)
-			throw new IllegalArgumentException("Channel out of range");
+			throw new IllegalArgumentException("Channel out of range: "+channel);
 		return lut[channel-1];
 	}
 	
@@ -513,6 +513,8 @@ public class CompositeImage extends ImagePlus {
 			for (int i=0; i<MAX_CHANNELS; i++)
 				active[i] = active2[i];
 		}
+		if (ci.hasCustomLuts())
+			customLuts = true;
 	}
 
 	int getChannelIndex() {
@@ -557,6 +559,7 @@ public class CompositeImage extends ImagePlus {
 			throw new IllegalArgumentException("Channel out of range");
 		lut[channel-1] = (LUT)table.clone();
 		cip = null;
+		customLuts = true;
 	}
 
 	/* Sets the IndexColorModel of the current channel. */
@@ -572,11 +575,17 @@ public class CompositeImage extends ImagePlus {
 	}
 
 	public double getDisplayRangeMin() {
-		return lut[getChannelIndex()].min;
+		if (lut!=null)
+			return lut[getChannelIndex()].min;
+		else
+			return 0.0;
 	}
 
 	public double getDisplayRangeMax() {
-		return lut[getChannelIndex()].max;
+		if (lut!=null)
+			return lut[getChannelIndex()].max;
+		else
+			return 255.0;
 	}
 
 	public void resetDisplayRange() {

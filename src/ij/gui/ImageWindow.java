@@ -69,6 +69,7 @@ public class ImageWindow extends Frame implements FocusListener, WindowListener,
         	else
         		setBackground(Color.white);
         }
+		boolean hyperstack = imp.isHyperStack();
 		ij = IJ.getInstance();
 		this.imp = imp;
 		if (ic==null)
@@ -98,6 +99,8 @@ public class ImageWindow extends Frame implements FocusListener, WindowListener,
 				pack();
 				show();
 			}
+			if (ic.getMagnification()!=0.0)
+				imp.setTitle(imp.getTitle());
 			boolean unlocked = imp.lockSilently();
 			boolean changes = imp.changes;
 			imp.changes = false;
@@ -105,6 +108,8 @@ public class ImageWindow extends Frame implements FocusListener, WindowListener,
 			imp.changes = changes;
 			if (unlocked)
 				imp.unlock();
+			if (hyperstack && this.imp!=null)
+				this.imp.setOpenAsHyperStack(true);
 			WindowManager.setCurrentWindow(this);
 		} else {
 			setLocationAndSize(false);
@@ -356,7 +361,7 @@ public class ImageWindow extends Frame implements FocusListener, WindowListener,
 		if (WindowManager.getWindowCount()==0)
 			{xloc = 0; yloc = 0;}
 		WindowManager.removeWindow(this);
-		setVisible(false);
+		//setVisible(false);
 		if (ij!=null && ij.quitting())  // this may help avoid thread deadlocks
 			return true;
 		dispose();
@@ -539,7 +544,7 @@ public class ImageWindow extends Frame implements FocusListener, WindowListener,
 			WindowManager.setCurrentWindow(this);
 			IJ.doCommand("Close");
 		} else {
-			setVisible(false);
+			//setVisible(false);
 			dispose();
 			WindowManager.removeWindow(this);
 		}
@@ -601,7 +606,7 @@ public class ImageWindow extends Frame implements FocusListener, WindowListener,
     }
     
     public String toString() {
-    	return imp.getTitle();
+    	return imp!=null?imp.getTitle():"";
     }
     
     /** Causes the next image to be opened to be centered on the screen

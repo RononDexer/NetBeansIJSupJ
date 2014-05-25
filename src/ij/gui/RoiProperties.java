@@ -1,7 +1,10 @@
 package ij.gui;
 import ij.*;
 import ij.plugin.Colors;
+import ij.io.RoiDecoder;
 import java.awt.*;
+import java.util.*;
+
 
  /** Displays a dialog that allows the user to specify ROI properties such as color and line width. */
 public class RoiProperties {
@@ -9,29 +12,52 @@ public class RoiProperties {
 	private String title;
 	private boolean showName = true;
 	private boolean addToOverlay;
+	private boolean overlayOptions;
+	private boolean existingOverlay;
+	private boolean setPositions;
+	private static final String[] justNames = {"Left", "Center", "Right"};
 
-    /** Constructs a ColorChooser using the specified title and initial color. */
-    public RoiProperties(String title, Roi roi) {
-    	if (roi==null)
-    		throw new IllegalArgumentException("ROI is null");
-    	this.title = title;
-    	showName = title.startsWith("Prop");
-    	addToOverlay = title.equals("Add to Overlay");
-    	this.roi = roi;
-    }
-    
-    /** Displays the dialog box and returns 'false' if the user cancels the dialog. */
-    public boolean showDialog() {
-    	Color strokeColor = null;
-    	Color fillColor = null;
-    	double strokeWidth = 1.0;
-    	String name= roi.getName();
-    	boolean isRange = name!=null && name.startsWith("range: ");
-    	String nameLabel = isRange?"Range:":"Name:";
-    	if (isRange) name = name.substring(7);
-    	if (name==null) name = "";
-    	if (!isRange && (roi instanceof ImageRoi))
-    		return showImageDialog(name);
+	/** Constructs a ColorChooser using the specified title and initial color. */
+	public RoiProperties(String title, Roi roi) {
+		if (roi==null)
+			throw new IllegalArgumentException("ROI is null");
+		this.title = title;
+		showName = title.startsWith("Prop");
+		addToOverlay = title.equals("Add to Overlay");
+		overlayOptions = title.equals("Overlay Options");
+		ImagePlus imp = WindowManager.getCurrentImage();
+		if (overlayOptions) {
+			Overlay overlay = imp!=null?imp.getOverlay():null;
+			setPositions = roi.getPosition()!=0;
+			if (overlay!=null)
+				existingOverlay = true;
+		}
+		this.roi = roi;
+	}
+	
+	private String decodeColor(Color color, Color defaultColor) {
+		if (color==null)
+			color = defaultColor;
+		String str = "#"+Integer.toHexString(color.getRGB());
+		if (str.length()==9 && str.startsWith("#ff"))
+			str = "#"+str.substring(3);
+		String lc = Colors.hexToColor(str);
+		if (lc!=null) str = lc;
+		return str;
+	}
+	
+	/** Displays the dialog box and returns 'false' if the user cancels it. */
+	public boolean showDialog() {
+		Color strokeColor = null;
+		Color fillColor = null;
+		double strokeWidth = 1.0;
+		String name= roi.getName();
+		boolean isRange = name!=null && name.startsWith("range: ");
+		String nameLabel = isRange?"Range:":"Name:";
+		if (isRange) name = name.substring(7);
+		if (name==null) name = "";
+		if (!isRange && (roi instanceof ImageRoi))
+			return showImageDialog(name);
 		if (roi.getStrokeColor()!=null) strokeColor = roi.getStrokeColor();
 		if (strokeColor==null) strokeColor = Roi.getColor();
 		if (roi.getFillColor()!=null) fillColor = roi.getFillColor();
@@ -39,9 +65,12 @@ public class RoiProperties {
 		if (width>1.0) strokeWidth = width;
 		boolean isText = roi instanceof TextRoi;
 		boolean isLine = roi.isLine();
+		int justification = TextRoi.LEFT;
 		if (isText) {
-			Font font = ((TextRoi)roi).getCurrentFont();
+			TextRoi troi = (TextRoi)roi;
+			Font font = troi.getCurrentFont();
 			strokeWidth = font.getSize();
+			justification = troi.getJustification();
 		}
 		String linec = strokeColor!=null?"#"+Integer.toHexString(strokeColor.getRGB()):"none";
 		if (linec.length()==9 && linec.startsWith("#ff"))
@@ -54,18 +83,24 @@ public class RoiProperties {
 		GenericDialog gd = new GenericDialog(title);
 		if (showName)
 			gd.addStringField(nameLabel, name, 15);
-		gd.addStringField("Stroke Color: ", linec);
-		gd.addNumericField(isText?"Font Size":"Width:", strokeWidth, digits);
+		gd.addStringField("Stroke color: ", linec);
+		if (isText) {
+			gd.addNumericField("Font size:", strokeWidth, digits);
+			gd.addChoice("Justification:", justNames, justNames[justification]);
+		} else
+			gd.addNumericField("Width:", strokeWidth, digits);
 		if (!isLine) {
 			gd.addMessage("");
-			gd.addStringField("Fill Color: ", fillc);
+			gd.addStringField("Fill color: ", fillc);
 		}
-		if (addToOverlay) {
-			gd.addCheckbox("New Overlay", false);
-			gd.setInsets(15, 10, 0);
-			gd.addMessage("Use the alt-b shortcut\nto skip this dialog.");
+		if (addToOverlay)
+			gd.addCheckbox("New overlay", false);
+		if (overlayOptions) {
+			if (existingOverlay) {
+				gd.addCheckbox("Apply to current overlay", false);
+			}
+			gd.addCheckbox("Set stack positions", setPositions);
 		}
-		
 		gd.showDialog();
 		if (gd.wasCanceled()) return false;
 		if (showName) {
@@ -74,29 +109,55 @@ public class RoiProperties {
 		}
 		linec = gd.getNextString();
 		strokeWidth = gd.getNextNumber();
+		if (isText)
+			justification = gd.getNextChoiceIndex();
 		if (!isLine)
 			fillc = gd.getNextString();
+		boolean applyToOverlay = false;
 		boolean newOverlay = addToOverlay?gd.getNextBoolean():false;
-			
+		if (overlayOptions) {
+			if (existingOverlay)
+				applyToOverlay = gd.getNextBoolean();
+			setPositions = gd.getNextBoolean();
+			roi.setPosition(setPositions?1:0);
+		}
 		strokeColor = Colors.decode(linec, Roi.getColor());
 		fillColor = Colors.decode(fillc, null);
 		if (isText) {
-			Font font = ((TextRoi)roi).getCurrentFont();
+			TextRoi troi = (TextRoi)roi;
+			Font font = troi.getCurrentFont();
 			if ((int)strokeWidth!=font.getSize()) {
 				font = new Font(font.getName(), font.getStyle(), (int)strokeWidth);
-				((TextRoi)roi).setCurrentFont(font);
+				troi.setCurrentFont(font);
 			}
-		} else if (addToOverlay||strokeWidth>1.0)
-				roi.setStrokeWidth((float)strokeWidth);
+			if (justification!=troi.getJustification())
+				troi.setJustification(justification);
+		} else if (strokeWidth!=1.0 || roi.getStroke()!=null)
+			roi.setStrokeWidth((float)strokeWidth);
 		roi.setStrokeColor(strokeColor);
 		roi.setFillColor(fillColor);
 		if (newOverlay) roi.setName("new-overlay");
+		if (applyToOverlay) {
+			ImagePlus imp = WindowManager.getCurrentImage();
+			if (imp==null)
+				return true;
+			Overlay overlay = imp.getOverlay();
+			if (overlay==null)
+				return true;
+			Roi[] rois = overlay.toArray();
+			for (int i=0; i<rois.length; i++) {
+				rois[i].setStrokeColor(strokeColor);
+				rois[i].setStrokeWidth((float)strokeWidth);
+				rois[i].setFillColor(fillColor);
+			}
+			imp.draw();
+		}
 		//if (strokeWidth>1.0 && !roi.isDrawingTool())
 		//	Line.setWidth(1);
 		return true;
-    }
-        
-    public boolean showImageDialog(String name) {
+	}
+		
+	public boolean showImageDialog(String name) {
 		GenericDialog gd = new GenericDialog(title);
 		gd.addStringField("Name:", name, 15);
 		gd.addNumericField("Opacity (0-100%):", ((ImageRoi)roi).getOpacity()*100.0, 0);
@@ -111,6 +172,6 @@ public class RoiProperties {
 		boolean newOverlay = addToOverlay?gd.getNextBoolean():false;
 		if (newOverlay) roi.setName("new-overlay");
 		return true;
-    }
-
+	}
+	
 }

@@ -300,8 +300,10 @@ public class Recorder extends PlugInFrame implements PlugIn, ActionListener, Ima
 	}
 
 	public static void recordPath(String key, String path) {
-		if (key==null || !recordPath)
-			{recordPath=true; return;}
+		if (key==null || !recordPath) {
+			recordPath = true;
+			return;
+		}
 		key = trimKey(key);
 		path = fixPath(path);
 		path = addQuotes(path);
@@ -388,7 +390,7 @@ public class Recorder extends PlugInFrame implements PlugIn, ActionListener, Ima
 					textArea.append(prefix+"\""+name+"\", \""+commandOptions+"\");\n");
 				}
 			} else {
-				if (name.equals("Threshold...") || name.equals("Fonts..."))
+				if (name.equals("Threshold...") || name.equals("Fonts...") || name.equals("Brightness/Contrast..."))
 					textArea.append("//run(\""+name+"\");\n");
 				else if (name.equals("Start Animation [\\]"))
 					textArea.append("doCommand(\"Start Animation [\\\\]\");\n");
@@ -606,10 +608,6 @@ public class Recorder extends PlugInFrame implements PlugIn, ActionListener, Ima
 		);
     }
     
-    public void windowClosing(WindowEvent e) {
-    	close();
-	}
-
 	public void close() {
 		super.close();
 		record = false;

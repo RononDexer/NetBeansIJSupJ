@@ -501,7 +501,8 @@ public class ShortProcessor extends ImageProcessor {
 						v2 = (int)(Math.exp(v1*(Math.log(max2)/max2)));
 						break;
 					case SQR:
-							v2 = v1*v1;
+						double d1 = v1;
+						v2 = (int)(d1*d1);
 						break;
 					case SQRT:
 						v2 = (int)Math.sqrt(v1);
@@ -933,6 +934,7 @@ public class ShortProcessor extends ImageProcessor {
 
 	/** Sets the foreground fill/draw color. */
 	public void setColor(Color color) {
+		drawingColor = color;
 		int bestIndex = getBestIndex(color);
 		if (bestIndex>0 && getMin()==0.0 && getMax()==0.0) {
 			setValue(bestIndex);

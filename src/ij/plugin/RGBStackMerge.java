@@ -9,8 +9,10 @@ public class RGBStackMerge implements PlugIn {
 
 	private static boolean staticCreateComposite = true;
 	private static boolean staticKeep;
+	private static boolean staticIgnoreLuts;
 	private ImagePlus imp;
 	private byte[] blank;
+	private boolean ignoreLuts;
  
 	public void run(String arg) {
 		imp = WindowManager.getCurrentImage();
@@ -39,8 +41,9 @@ public class RGBStackMerge implements PlugIn {
 		titles[wList.length] = none;
 		boolean createComposite = staticCreateComposite;
 		boolean keep = staticKeep;
+		ignoreLuts = staticIgnoreLuts;
 		if (IJ.isMacro())
-			createComposite = keep = false;
+			createComposite = keep = ignoreLuts = false;
 
 		GenericDialog gd = new GenericDialog("Color Merge");
 		gd.addChoice("Red:", titles, titles[0]);
@@ -49,8 +52,9 @@ public class RGBStackMerge implements PlugIn {
 		gd.addChoice("Blue:", titles, title3);
 		String title4 = titles.length>3&&!IJ.macroRunning()?titles[3]:none;
 		gd.addChoice("Gray:", titles, title4);
-		gd.addCheckbox("Create Composite", createComposite);
-		gd.addCheckbox("Keep Source Images", keep);
+		gd.addCheckbox("Create composite", createComposite);
+		gd.addCheckbox("Keep source images", keep);
+		gd.addCheckbox("Ignore source LUTs", ignoreLuts);
 		gd.showDialog();
 		if (gd.wasCanceled())
 			return;
@@ -61,9 +65,11 @@ public class RGBStackMerge implements PlugIn {
 		index[3] = gd.getNextChoiceIndex();
 		createComposite = gd.getNextBoolean();
 		keep = gd.getNextBoolean();
+		ignoreLuts = gd.getNextBoolean();
 		if (!IJ.isMacro()) {
 			staticCreateComposite = createComposite;
 			staticKeep = keep;
+			staticIgnoreLuts = ignoreLuts;
 		}
 
 		ImagePlus[] images = new ImagePlus[4];
@@ -128,12 +134,12 @@ public class RGBStackMerge implements PlugIn {
 				error("The source images or stacks must have the same width and height.");
 				return;
 			}
-			if (createComposite) {
-				for (int j=0; j<4; j++) {
-					if (j!=i && images[j]!=null && img==images[j])
-						createComposite = false;
-				}
-			}
+			//if (createComposite) {
+			//	for (int j=0; j<4; j++) {
+			//		if (j!=i && images[j]!=null && img==images[j])
+			//			createComposite = false;
+			//	}
+			//}
 			if (createComposite && img.getBitDepth()!=bitDepth) {
 				error("The source images must have the same bit depth.");
 				return;
@@ -170,20 +176,19 @@ public class RGBStackMerge implements PlugIn {
 			imp2.setCalibration(images[0].getCalibration());
 		if (!keep) {
 			for (int i=0; i<4; i++) {
-				if (images[i]!=null) {
+				if (images[i]!=null && images[i].getWindow()!=null) {
 					images[i].changes = false;
 					images[i].close();
 				}
 			}
 		}
 		if (fourChannelRGB) {
-			if (stackSize==1) {
+			if (imp2.getStackSize()==1) {
 				imp2 = imp2.flatten();
 				imp2.setTitle("RGB");
 			} else {
 				imp2.setTitle("RGB");
 				IJ.run(imp2, "RGB Color", "slices");
-				return;
 			}
 		}
 		imp2.show();
@@ -211,8 +216,12 @@ public class RGBStackMerge implements PlugIn {
 		}
 		images = images2;
 		ImageStack[] stacks = new ImageStack[channels];
-		for (int i=0; i<channels; i++)
-			stacks[i] = images[i].getStack();
+		for (int i=0; i<channels; i++) {
+			ImagePlus imp2 = images[i];
+			if (isDuplicate(i,images))
+				imp2 = imp2.duplicate();
+			stacks[i] = imp2.getStack();
+		}
 		ImagePlus imp = images[0];
 		int w = imp.getWidth();
 		int h = imp.getHeight();
@@ -225,7 +234,8 @@ public class RGBStackMerge implements PlugIn {
 			for (int z=0; z<slices; z++) {
 				for (int c=0; c<channels; c++) {
 					ImageProcessor ip = stacks[c].getProcessor(index[c]+1);
-					if (keep) ip = ip.duplicate();
+					if (keep)
+						ip = ip.duplicate();
 					stack2.addSlice(null, ip);
 					if (keep)
 						index[c]++;
@@ -246,7 +256,7 @@ public class RGBStackMerge implements PlugIn {
 			ImageProcessor ip = images[c].getProcessor();
 			IndexColorModel cm = (IndexColorModel)ip.getColorModel();
 			LUT lut = null;
-			if (c<colors.length && !ip.isColorLut() && colors[c]!=null) {
+			if (c<colors.length && colors[c]!=null && (ignoreLuts||!ip.isColorLut())) {
 				lut = LUT.createLutFromColor(colors[c]);
 				lut.min = ip.getMin();
 				lut.max = ip.getMax();
@@ -257,7 +267,15 @@ public class RGBStackMerge implements PlugIn {
 		imp2.setOpenAsHyperStack(true);
 		return imp2;
 	}
-
+	
+	private boolean isDuplicate(int index, ImagePlus[] images) {
+		int count = 0;
+		for (int i=0; i<index; i++) {
+			if (images[index]==images[i])
+				return true;
+		}
+		return false;
+	}
 
 	/** Deprecated; replaced by mergeChannels(). */
 	public ImagePlus createComposite(int w, int h, int d, ImageStack[] stacks, boolean keep) {
@@ -291,7 +309,7 @@ public class RGBStackMerge implements PlugIn {
 			if (keep) {
 				slice++;
 			} else {
-					if (red!=null) red.deleteSlice(1);
+				if (red!=null) red.deleteSlice(1);
 				if (green!=null &&green!=red) green.deleteSlice(1);
 				if (blue!=null&&blue!=red && blue!=green) blue.deleteSlice(1);
 			}

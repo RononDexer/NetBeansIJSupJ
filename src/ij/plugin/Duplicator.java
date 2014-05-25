@@ -7,6 +7,7 @@ import ij.process.*;
 import ij.gui.*;
 import ij.util.Tools;
 import ij.plugin.frame.Recorder;
+import ij.measure.Calibration;
 
 /** This plugin implements the Image/Duplicate command.
 <pre>
@@ -32,7 +33,7 @@ public class Duplicator implements PlugIn, TextListener {
 		String title = imp.getTitle();
 		String newTitle = WindowManager.getUniqueName(title);
 		if (!IJ.altKeyDown()||stackSize>1) {
-			if (imp.isHyperStack()) {
+			if (imp.isHyperStack() || imp.isComposite()) {
 				duplicateHyperstack(imp, newTitle);
 				return;
 			} else
@@ -48,9 +49,14 @@ public class Duplicator implements PlugIn, TextListener {
 			imp2 = run(imp);
 		else
 			imp2 = duplicateImage(imp);
+		Calibration cal = imp2.getCalibration();
+		if (roi!=null && (cal.xOrigin!=0.0||cal.yOrigin!=0.0)) {
+			cal.xOrigin -= roi.getBounds().x;
+			cal.yOrigin -= roi.getBounds().y;
+		}
 		imp2.setTitle(newTitle);
 		imp2.show();
-		if (roi!=null && roi.isArea() && roi.getType()!=Roi.RECTANGLE)
+		if (roi!=null && roi.isArea() && roi.getType()!=Roi.RECTANGLE && roi.getBounds().width==imp2.getWidth())
 			imp2.restoreRoi();
 	}
                 
@@ -63,14 +69,14 @@ public class Duplicator implements PlugIn, TextListener {
 		Roi roi = imp.getRoi();
 		if (roi!=null && roi.isArea())
 			rect = roi.getBounds();
-		int width = rect!=null?rect.width:imp.getWidth();
-		int height = rect!=null?rect.height:imp.getHeight();
 		ImageStack stack = imp.getStack();
-		ImageStack stack2 = new ImageStack(width, height, imp.getProcessor().getColorModel());
+		ImageStack stack2 = null;
 		for (int i=1; i<=stack.getSize(); i++) {
 			ImageProcessor ip2 = stack.getProcessor(i);
 			ip2.setRoi(rect);
 			ip2 = ip2.crop();
+			if (stack2==null)
+				stack2 = new ImageStack(ip2.getWidth(), ip2.getHeight(), imp.getProcessor().getColorModel());
 			stack2.addSlice(stack.getSliceLabel(i), ip2);
 		}
 		ImagePlus imp2 = imp.createImagePlus();
@@ -128,14 +134,14 @@ public class Duplicator implements PlugIn, TextListener {
 		Roi roi = imp.getRoi();
 		if (roi!=null && roi.isArea())
 			rect = roi.getBounds();
-		int width = rect!=null?rect.width:imp.getWidth();
-		int height = rect!=null?rect.height:imp.getHeight();
 		ImageStack stack = imp.getStack();
-		ImageStack stack2 = new ImageStack(width, height, imp.getProcessor().getColorModel());
+		ImageStack stack2 = null;
 		for (int i=firstSlice; i<=lastSlice; i++) {
 			ImageProcessor ip2 = stack.getProcessor(i);
 			ip2.setRoi(rect);
 			ip2 = ip2.crop();
+			if (stack2==null)
+				stack2 = new ImageStack(ip2.getWidth(), ip2.getHeight(), imp.getProcessor().getColorModel());
 			stack2.addSlice(stack.getSliceLabel(i), ip2);
 		}
 		ImagePlus imp2 = imp.createImagePlus();
@@ -156,10 +162,8 @@ public class Duplicator implements PlugIn, TextListener {
 		Roi roi = imp.getRoi();
 		if (roi!=null && roi.isArea())
 			rect = roi.getBounds();
-		int width = rect!=null?rect.width:imp.getWidth();
-		int height = rect!=null?rect.height:imp.getHeight();
 		ImageStack stack = imp.getStack();
-		ImageStack stack2 = new ImageStack(width, height);
+		ImageStack stack2 = null;
 		for (int t=firstT; t<=lastT; t++) {
 			for (int z=firstZ; z<=lastZ; z++) {
 				for (int c=firstC; c<=lastC; c++) {
@@ -168,6 +172,8 @@ public class Duplicator implements PlugIn, TextListener {
 					String label = stack.getSliceLabel(n1);
 					ip.setRoi(rect);
 					ip = ip.crop();
+					if (stack2==null)
+						stack2 = new ImageStack(ip.getWidth(), ip.getHeight(), null);
 					stack2.addSlice(label, ip);
 				}
 			}
@@ -187,6 +193,7 @@ public class Duplicator implements PlugIn, TextListener {
 			} else if (firstC==lastC) {
 				LUT lut = ((CompositeImage)imp).getChannelLut(firstC);
 				imp2.getProcessor().setColorModel(lut);
+				imp2.setDisplayRange(lut.min, lut.max);
 			}
         }
 		imp2.setOpenAsHyperStack(true);
@@ -221,8 +228,8 @@ public class Duplicator implements PlugIn, TextListener {
 			duplicateStack = gd.getNextBoolean();
 			if (duplicateStack && duplicateSubstack) {
 				String[] range = Tools.split(gd.getNextString(), " -");
-				double d1 = Tools.parseDouble(range[0]);
-				double d2 = range.length==2?Tools.parseDouble(range[1]):Double.NaN;
+				double d1 = gd.parseDouble(range[0]);
+				double d2 = range.length==2?gd.parseDouble(range[1]):Double.NaN;
 				first = Double.isNaN(d1)?1:(int)d1;
 				last = Double.isNaN(d2)?stackSize:(int)d2;
 				if (first<1) first = 1;
@@ -244,7 +251,8 @@ public class Duplicator implements PlugIn, TextListener {
 		Roi roi = imp.getRoi();
 		if (!duplicateStack) {
 			int nChannels = imp.getNChannels();
-			if (nChannels>1 && imp.isComposite() && ((CompositeImage)imp).getMode()==CompositeImage.COMPOSITE) {
+			boolean singleComposite = imp.isComposite() && nChannels==imp.getStackSize();
+			if (!singleComposite && nChannels>1 && imp.isComposite() && ((CompositeImage)imp).getMode()==CompositeImage.COMPOSITE) {
 				firstC = 1;
 				lastC = nChannels;
 			} else
@@ -254,20 +262,28 @@ public class Duplicator implements PlugIn, TextListener {
 		}
 		imp2 = run(imp, firstC, lastC, firstZ, lastZ, firstT, lastT);
 		if (imp2==null) return;
+		Calibration cal = imp2.getCalibration();
+		if (roi!=null && (cal.xOrigin!=0.0||cal.yOrigin!=0.0)) {
+			cal.xOrigin -= roi.getBounds().x;
+			cal.yOrigin -= roi.getBounds().y;
+		}
 		imp2.setTitle(newTitle);
 		imp2.show();
-		if (roi!=null && roi.isArea() && roi.getType()!=Roi.RECTANGLE)
+		if (roi!=null && roi.isArea() && roi.getType()!=Roi.RECTANGLE && roi.getBounds().width==imp2.getWidth())
 			imp2.restoreRoi();
+		if (IJ.isMacro()&&imp2.getWindow()!=null)
+			IJ.wait(50);
 	}
 
 	String showHSDialog(ImagePlus imp, String newTitle) {
 		int nChannels = imp.getNChannels();
 		int nSlices = imp.getNSlices();
 		int nFrames = imp.getNFrames();
+		boolean composite = imp.isComposite() && nChannels==imp.getStackSize();
 		GenericDialog gd = new GenericDialog("Duplicate");
 		gd.addStringField("Title:", newTitle, 15);
 		gd.setInsets(12, 20, 8);
-		gd.addCheckbox("Duplicate hyperstack", duplicateStack);
+		gd.addCheckbox("Duplicate hyperstack", duplicateStack||composite);
 		int nRangeFields = 0;
 		if (nChannels>1) {
 			gd.setInsets(2, 30, 3);
@@ -298,8 +314,8 @@ public class Duplicator implements PlugIn, TextListener {
 		duplicateStack = gd.getNextBoolean();
 		if (nChannels>1) {
 			String[] range = Tools.split(gd.getNextString(), " -");
-			double c1 = Tools.parseDouble(range[0]);
-			double c2 = range.length==2?Tools.parseDouble(range[1]):Double.NaN;
+			double c1 = gd.parseDouble(range[0]);
+			double c2 = range.length==2?gd.parseDouble(range[1]):Double.NaN;
 			firstC = Double.isNaN(c1)?1:(int)c1;
 			lastC = Double.isNaN(c2)?firstC:(int)c2;
 			if (firstC<1) firstC = 1;
@@ -309,8 +325,8 @@ public class Duplicator implements PlugIn, TextListener {
 			firstC = lastC = 1;
 		if (nSlices>1) {
 			String[] range = Tools.split(gd.getNextString(), " -");
-			double z1 = Tools.parseDouble(range[0]);
-			double z2 = range.length==2?Tools.parseDouble(range[1]):Double.NaN;
+			double z1 = gd.parseDouble(range[0]);
+			double z2 = range.length==2?gd.parseDouble(range[1]):Double.NaN;
 			firstZ = Double.isNaN(z1)?1:(int)z1;
 			lastZ = Double.isNaN(z2)?firstZ:(int)z2;
 			if (firstZ<1) firstZ = 1;
@@ -320,8 +336,8 @@ public class Duplicator implements PlugIn, TextListener {
 			firstZ = lastZ = 1;
 		if (nFrames>1) {
 			String[] range = Tools.split(gd.getNextString(), " -");
-			double t1 = Tools.parseDouble(range[0]);
-			double t2 = range.length==2?Tools.parseDouble(range[1]):Double.NaN;
+			double t1 = gd.parseDouble(range[0]);
+			double t2 = range.length==2?gd.parseDouble(range[1]):Double.NaN;
 			firstT= Double.isNaN(t1)?1:(int)t1;
 			lastT = Double.isNaN(t2)?firstT:(int)t2;
 			if (firstT<1) firstT = 1;

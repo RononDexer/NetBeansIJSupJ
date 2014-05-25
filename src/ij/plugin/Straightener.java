@@ -18,7 +18,7 @@ public class Straightener implements PlugIn {
 		}
 		int width = (int)Math.round(roi.getStrokeWidth());
 		int originalWidth = width;
-		boolean isMacro = IJ.macroRunning();
+		boolean isMacro = IJ.macroRunning() && Macro.getOptions()!=null;
 		int stackSize = imp.getStackSize();
 		if (stackSize==1) processStack = false;
 		if (width==1 || isMacro || stackSize>1) {
@@ -141,7 +141,7 @@ public class Straightener implements PlugIn {
 			} while (--n2>0);
 		}
 		if (!processStack) IJ.showProgress(n, n);
-		imp.updateAndDraw();
+		//imp.updateAndDraw();
 		if (!isSpline) {
 			if (type==Roi.FREELINE)
 				roi.removeSplineFit();
