@@ -1,11 +1,13 @@
 package SupavisioJ.Spectra;
+
 import SupavisioJ.ImageGenerated.ImageGenerated;
 import SupavisioJ.ConvertListFiles.ADC.ADC;
 import SupavisioJ.MainFrame.MainFrame;
-import java.util.ArrayList;
+
 import ij.*;
+
+import java.util.ArrayList;
 import java.util.Arrays;
-import ij.gui.Plot;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -14,7 +16,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import javax.swing.JFrame;
 import SupavisioJ.resources.lib.XYPlotSp;
 
 
@@ -315,8 +316,7 @@ public class Spectra {
         imgsGenProduced.add(arrayOfImgGen[i]);
     }
     return arrayOfImgGen;
-  }
-  
+  }   
   
    public String getNameToSave(){
        return getFileName()+".spct.spj";
