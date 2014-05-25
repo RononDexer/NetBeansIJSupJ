@@ -1,10 +1,12 @@
 package SupavisioJ.resources.lib;
+
 import SupavisioJ.ImageGenerated.ImageGenerated;
 import SupavisioJ.MainFrame.MainFrame;
 import SupavisioJ.Spectra.Spectra;
 import SupavisioJ.resources.lib.CheckBoxListenerSp;
 
 import ij.*;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowEvent;
@@ -21,6 +23,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
