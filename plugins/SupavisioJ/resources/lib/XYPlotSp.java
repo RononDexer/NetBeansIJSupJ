@@ -28,7 +28,6 @@ import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -313,9 +312,22 @@ public class XYPlotSp extends JFrame {
             ArrayList<String> nameOfImgGen = (ArrayList<String>) vectValues.get(0);
             ArrayList<float[]> minMaxSpectra = (ArrayList<float[]>) vectValues.get(1);
             float[][] minMaxSpectraArray = minMaxSpectra.toArray(new float[minMaxSpectra.size()][2]);
-            tabImgGenFromSpectra = spectraDrew.generatePicture(minMaxSpectraArray);
-            for (int i=0;i<tabImgGenFromSpectra.length;i++){
-                tabImgGenFromSpectra[i].show(nameOfImgGen.get(i));
+            if(minMaxSpectraArray.length>0){
+                tabImgGenFromSpectra = spectraDrew.generatePicture(minMaxSpectraArray);
+                ImageGenerated imgToShow=tabImgGenFromSpectra[0];
+                imgToShow.setTitle(nameOfImgGen.get(0));
+                int nbOfOtherImg=tabImgGenFromSpectra.length-1;
+                if(nbOfOtherImg>0){//check if more than one image to show
+                    ImageGenerated[] tabOtherImgToShow = new ImageGenerated[nbOfOtherImg];
+                    for (int i=0;i<nbOfOtherImg;i++){
+                        tabOtherImgToShow[i]=tabImgGenFromSpectra[i+1];
+                        tabOtherImgToShow[i].setTitle(nameOfImgGen.get(i+1));
+                    }
+                    imgToShow.showWithOtherImgs(tabOtherImgToShow);
+                }
+                else{
+                    imgToShow.show();
+                }
             }
         }
         catch(NullPointerException e){}
