@@ -17,7 +17,7 @@
   
    <target name="compilePlugins" description="Compile plugins">
       <javac srcdir="plugins" destdir="plugins" optimize="on" source="1.7" target="1.7" debug="on"
-      classpath="./ij.jar" fork="yes"/>
+      classpath="./ij.jar;./plugins/lib/;./plugins/lib/jfreechart.jar;./plugins/lib/jcommon.jar" fork="yes"/>
     </target>
     
    <target name="build" depends="compile" description="Build ij.jar.">
@@ -26,6 +26,8 @@
       <copy file="images/microscope.gif" tofile="build/microscope.gif" />
       <copy file="images/about.jpg" tofile="build/about.jpg" />
       <copy file="plugins/MacAdapter.class" tofile="build/MacAdapter.class" /> 
+      <copy file="plugins/JavaScriptEvaluator.class" tofile="build/JavaScriptEvaluator.class" /> 
+      <copy file="plugins/MacClipboard.class" tofile="build/MacClipboard.class" />
       <copy todir="build/macros"><fileset dir="macros"/></copy>
       <copy todir="plugins">
          <fileset dir="build">
@@ -53,7 +55,7 @@
    
    
    <target name="run" depends="build" description="Build and run ImageJ.">
-      <java jar="ij.jar" fork="yes" />
+      <java maxmemory="640m" jar="ij.jar" fork="yes" />
    </target>
    
    
@@ -75,7 +77,7 @@
    <target name="zip" depends="clean" description="Build zrc.zip.">
       <zip zipfile="../src.zip"
       basedir=".."
-      includes="source/**"
+      includes="src/**"
       />
    </target>
 
