@@ -46,6 +46,7 @@ public class XYPlotSp extends JFrame {
     private JFreeChart chart;
     private static MainFrame parentWindow;
     private boolean yIsLog=false;
+    private CheckBoxListenerSp checkBoxListener;
     
     public XYPlotSp(Spectra spectraDrew, final String titleWindow,final String titleGraph2, double[] energiesX, double[] dataY) {
         super(titleWindow);
@@ -150,12 +151,10 @@ public class XYPlotSp extends JFrame {
      * @see CheckBoxListenerSp
      */
     private void initComponents(ChartPanel chartPanel) {
+        checkBoxListener = new CheckBoxListenerSp(this);
         for(int i=0;i<3;i++){
             JComponent[] buttonsToAdd= new JComponent[4];
-            JCheckBox jCheckBox1 = new JCheckBox();
-            jCheckBox1.setText(tr("NA"));
-            jCheckBox1.addItemListener(new CheckBoxListenerSp(this));
-            buttonsToAdd[0] = jCheckBox1;
+            buttonsToAdd[0] = new JCheckBox();
             buttonsToAdd[1] = new JTextField();
             buttonsToAdd[2] = new JTextField();
             buttonsToAdd[3] = new JTextField();
@@ -217,9 +216,13 @@ public class XYPlotSp extends JFrame {
             JTextField textFieldCurrentName= (JTextField) tablJComp[1];
             JTextField textFieldCurrentMin= (JTextField) tablJComp[2];
             JTextField textFieldCurrentMax=(JTextField) tablJComp[3];
+            checkBoxCurrent.setText(tr("NA"));
             textFieldCurrentName.setText(tr("Name"));
             textFieldCurrentMin.setText(tr("Min"));
             textFieldCurrentMax.setText(tr("Max"));
+            checkBoxCurrent.addItemListener(checkBoxListener);
+            textFieldCurrentMin.getDocument().addDocumentListener(checkBoxListener);
+            textFieldCurrentMax.getDocument().addDocumentListener(checkBoxListener);
             grp1.addComponent(checkBoxCurrent, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE);
             grp1.addPreferredGap(ComponentPlacement.RELATED);
             grp1.addComponent(textFieldCurrentName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
@@ -347,6 +350,14 @@ public class XYPlotSp extends JFrame {
             }
         }
         return tabCheckBoxSelected;
+    }
+    
+    public JCheckBox getLastCheckBoxActivated(){
+        return checkBoxListener.getLastCheckBoxActivated();
+    }
+    
+    public void updateLinesOnChart(JCheckBox checkBoxToUpdate){
+        checkBoxListener.update(checkBoxToUpdate);
     }
     
     /**
@@ -494,6 +505,18 @@ public class XYPlotSp extends JFrame {
                 if (indexOfInterest!=-1){
                     return (JTextField) tabJComp[indexOfInterest];
                 }
+            }
+        }
+        return null;
+    }
+    
+    public JCheckBox getCheckBoxRelatedToField(String text){
+        for(int i=0;i<vectButtonsSupp.size();i++){
+            JComponent[] tabJComp = (JComponent[]) vectButtonsSupp.get(i);
+            for(int j=2;j<4;j++){
+                JTextField currentTextField = (JTextField) tabJComp[j];
+                if(currentTextField.getText().equals(text))
+                    return (JCheckBox) tabJComp[0];
             }
         }
         return null;

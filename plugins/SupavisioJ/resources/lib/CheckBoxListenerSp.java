@@ -1,8 +1,9 @@
 package SupavisioJ.resources.lib;
+
 import ij.IJ;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Paint;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
@@ -11,25 +12,34 @@ import java.util.Vector;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 
 /**
  * CheckBoxListener is the class responsible for the events related
- * with the checked / unchecked state of the checkboxes indicating the Min and Max spectra values.
+ * with the checked / unchecked state of the checkboxes indicating the Min and MlastCheckBoxActivatedax spectra values.
  * It will draw lines on the Spectra where the user has choosed energies
  */
-public class CheckBoxListenerSp implements ItemListener{
+public class CheckBoxListenerSp implements ItemListener,DocumentListener{
      private XYPlotSp sourceXYPlotSp;
-     private static ArrayList<JCheckBox> checkBoxList = new ArrayList<JCheckBox>();
-     private static ArrayList<int[]> colorList = new ArrayList<int[]>(); //color corresponding to the checkboxes
-     private static ArrayList<Float> lineDrewPositions = new ArrayList<Float>();
-     private static ArrayList<ValueMarker> lineDrewMarkers = new ArrayList<ValueMarker>();
-     private static ArrayList<int[]> lineDrewColors = new ArrayList<int[]>();
+     private ArrayList<JCheckBox> checkBoxList = new ArrayList<JCheckBox>();
+     private ArrayList<int[]> colorList = new ArrayList<int[]>(); //color corresponding to the checkboxes
+     private ArrayList<Float> lineDrewPositions = new ArrayList<Float>();
+     private ArrayList<ValueMarker> lineDrewMarkers = new ArrayList<ValueMarker>();
+     private ArrayList<int[]> lineDrewColors = new ArrayList<int[]>();
+     private JCheckBox lastCheckBoxActivated; 
 
    public CheckBoxListenerSp(XYPlotSp sourceXYPlotSp) {
       this.sourceXYPlotSp= sourceXYPlotSp;    
+   }
+   
+   public JCheckBox getLastCheckBoxActivated(){
+       return lastCheckBoxActivated;
    }
   
    public boolean isNotTaken(int r, int g,int b, int numberOfCall){
@@ -170,11 +180,41 @@ public class CheckBoxListenerSp implements ItemListener{
      * This method is called each time that a checkbox is selected/unselected 
      */
     public void itemStateChanged(ItemEvent e) {
+        update(e.getSource());
+    }
+        
+    public void update(Object objectActivated){
         Vector vectButtons = sourceXYPlotSp.getVectButtonsSupp();
         for (int i=0;i<vectButtons.size();i++){
             JComponent[] tabJCompToCheck = (JComponent[]) vectButtons.get(i);
             JCheckBox checkBoxCurrent = (JCheckBox) tabJCompToCheck[0];
-            if(e.getSource()==checkBoxCurrent){
+            if(objectActivated==checkBoxCurrent){
+                if(checkBoxCurrent.isSelected())
+                    lastCheckBoxActivated=checkBoxCurrent;
+                //first reset : check up; if min/max has been changed, markers' colors need to be rechecked.
+                // this checkbox = one color so it checks if markers of this color remain, they have to be removed.
+                int indexOfCheckBox = checkBoxList.indexOf(checkBoxCurrent);
+                if (indexOfCheckBox!=-1){
+                    int[] colorRGBOfCheckBox=colorList.get(indexOfCheckBox);
+                    int r=colorRGBOfCheckBox[0];
+                    int g=colorRGBOfCheckBox[1];
+                    int b=colorRGBOfCheckBox[2];
+                    ArrayList<Integer> valToRemove= new ArrayList<Integer>();
+                    for(int j=0;j<lineDrewColors.size();j++){
+                        int[] colorToCheck = lineDrewColors.get(j);
+                        if (r==colorToCheck[0] && g==colorToCheck[1] && b==colorToCheck[2]){
+                            valToRemove.add(j);
+                        }
+                    }
+                    for(int j=0;j<valToRemove.size();j++){
+                        float positionToRemove= lineDrewPositions.get(valToRemove.get(j));
+                        removeVerticalLine(positionToRemove,checkBoxCurrent);
+                        for(int k=0;k<valToRemove.size();k++){
+                            valToRemove.set(k,valToRemove.get(k)-1);
+                        }
+                    }
+                }
+                //get the min and max values to draw
                 for (int j=0;j<2;j++){
                     JTextField textFieldMinMax = (JTextField) tabJCompToCheck[j+2];
                     if ( !(textFieldMinMax.getText().equals("Min") || textFieldMinMax.getText().equals("Max")) ) {
@@ -188,35 +228,6 @@ public class CheckBoxListenerSp implements ItemListener{
                                 if(! lineDrewPositions.contains(minMax)){
                                     drawVerticalLine(minMax,checkBoxCurrent);
                                 }
-                            }
-                            else {
-                                if(lineDrewPositions.contains(minMax)) {
-                                    removeVerticalLine(minMax,checkBoxCurrent);
-                                }
-                            }
-                        }
-                    }
-                }
-                if(!checkBoxCurrent.isSelected()){//last check up; if min/max has been changed, markers' colors need to be rechecked.
-                    // this checkbox = one color so it checks if markers of this color remain, they have to be removed.
-                    int indexOfCheckBox = checkBoxList.indexOf(checkBoxCurrent);
-                    if (indexOfCheckBox!=-1){
-                        int[] colorRGBOfCheckBox=colorList.get(indexOfCheckBox);
-                        int r=colorRGBOfCheckBox[0];
-                        int g=colorRGBOfCheckBox[1];
-                        int b=colorRGBOfCheckBox[2];
-                        ArrayList<Integer> valToRemove= new ArrayList<Integer>();
-                        for(int j=0;j<lineDrewColors.size();j++){
-                            int[] colorToCheck = lineDrewColors.get(j);
-                            if (r==colorToCheck[0] && g==colorToCheck[1] && b==colorToCheck[2]){
-                                valToRemove.add(j);
-                            }
-                        }
-                        for(int j=0;j<valToRemove.size();j++){
-                            float positionToRemove= lineDrewPositions.get(valToRemove.get(j));
-                            removeVerticalLine(positionToRemove,checkBoxCurrent);
-                            for(int k=0;k<valToRemove.size();k++){
-                                valToRemove.set(k,valToRemove.get(k)-1);
                             }
                         }
                     }
@@ -235,6 +246,31 @@ public class CheckBoxListenerSp implements ItemListener{
         // so add 1 to make it inclusive
         int randomNum = rand.nextInt((max - min) + 1) + min;
         return randomNum;
+    }
+
+    
+    public void handlesDocumentEvt(DocumentEvent dEvt){
+        int lengthText = dEvt.getDocument().getLength();
+        try{
+            String text = dEvt.getDocument().getText(0,lengthText);
+            JCheckBox checkBoxToUpdate = sourceXYPlotSp.getCheckBoxRelatedToField(text);
+            if(checkBoxToUpdate!=null && checkBoxToUpdate.isSelected()){
+                update(checkBoxToUpdate);
+            }
+        }
+        catch(BadLocationException e){}
+    }
+    
+    public void insertUpdate(DocumentEvent dEvt) {
+        handlesDocumentEvt(dEvt);
+    }
+
+    public void removeUpdate(DocumentEvent dEvt) {
+        handlesDocumentEvt(dEvt);
+    }
+
+    public void changedUpdate(DocumentEvent e) {
+        //not used
     }
     
 }

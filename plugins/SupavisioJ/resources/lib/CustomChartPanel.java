@@ -21,6 +21,7 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
 
     private XYPlotSp parentXYPlotSp; 
     private JFreeChart chart = null; 
+    private float startValueX;
 
     /** 
     * constructor 
@@ -45,13 +46,8 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
       if (isACheckBoxSelected()) { 
 	setMouseZoomable(false,true); //zoom desactivation
 	super.mousePressed(mEvt);//call to the initial method 
-	float startValueX = getPointInChart(mEvt,false); //to have correspondance with actual values
+	startValueX = getPointInChart(mEvt,false); //to have correspondance with actual values
 	setMouseZoomable(true,false); //zomm activation
-        ArrayList<JCheckBox> checkBoxsSelected = parentXYPlotSp.getCheckBoxSelected();
-        int nbOfcheckBox = checkBoxsSelected.size();
-        JCheckBox checkBoxToChange = checkBoxsSelected.get(nbOfcheckBox-1);
-        JTextField minField = parentXYPlotSp.getField(checkBoxToChange,"Min");
-        minField.setText(String.valueOf(startValueX));
       } 
       else{ 
 	super.mousePressed(mEvt); //call to the initial method 
@@ -68,21 +64,24 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
 	setMouseZoomable(false,true); 
 	super.mouseReleased(mEvt); 
         float endValueX = getPointInChart(mEvt,true);
-	setMouseZoomable(true,false); 
-        ArrayList<JCheckBox> checkBoxsSelected = parentXYPlotSp.getCheckBoxSelected();
-        int nbOfcheckBox = checkBoxsSelected.size();
-        JCheckBox checkBoxToChange = checkBoxsSelected.get(nbOfcheckBox-1);
-        JTextField minField = parentXYPlotSp.getField(checkBoxToChange,"Min");
-        float minVal = Float.valueOf(minField.getText());
-        if (endValueX>minVal){
-            JTextField maxField = parentXYPlotSp.getField(checkBoxToChange,"Max");
-            maxField.setText(String.valueOf(endValueX));
-        }
+	setMouseZoomable(true,false);
+        update(endValueX);
       } 
       else { 
 	super.mouseReleased(mEvt); 
       } 
     } 
+    
+    public void update(float endValueX){
+        JCheckBox checkBoxToChange = parentXYPlotSp.getLastCheckBoxActivated();
+        JTextField minField = parentXYPlotSp.getField(checkBoxToChange,"Min");
+        JTextField maxField = parentXYPlotSp.getField(checkBoxToChange,"Max");
+        if (startValueX<=endValueX){
+            minField.setText(String.valueOf(startValueX));
+            maxField.setText(String.valueOf(endValueX));
+        }
+        //parentXYPlotSp.updateLinesOnChart(checkBoxToChange);
+    }
 
     /** 
     * Receives chart x,y axis. 
