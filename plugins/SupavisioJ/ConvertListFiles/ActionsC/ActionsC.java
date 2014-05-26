@@ -33,8 +33,8 @@ import javax.swing.JPanel;
  */
 
 public class ActionsC{
-  private Integer sizeMapX=700;
-  private Integer sizeMapY=700;
+  private Integer sizeMapX=1024;
+  private Integer sizeMapY=1024;
 
   ArrayList <listFiles> listFilesArray=new ArrayList <listFiles>();
   int [] flags=new int[28];
