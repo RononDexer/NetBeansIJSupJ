@@ -16,8 +16,8 @@ public class ADC{
     private ArrayList<Integer> median = new ArrayList<Integer>();
     private ArrayList<Integer> activationPeriods = new ArrayList<Integer>();
 
-    private Integer sizeMapX=700;
-    private Integer sizeMapY=700;
+    private Integer sizeMapX=1024;
+    private Integer sizeMapY=1024;
 
     //ADC constructor
     public ADC(){
