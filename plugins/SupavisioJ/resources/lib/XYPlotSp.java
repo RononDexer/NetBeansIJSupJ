@@ -56,7 +56,7 @@ public class XYPlotSp extends JFrame {
         //create the dataset
         final XYDataset dataset = createDataset(energiesX,dataY);
         //create the chart
-        final JFreeChart chart = createChart(dataset,titleGraph2);
+        final JFreeChart chart = createChart(dataset,titleGraph2,checkCalib());
         this.chart = chart;
         final CustomChartPanel chartPanel = new CustomChartPanel(chart,this);
         chartPanel.setMouseWheelEnabled(true);
@@ -92,11 +92,11 @@ public class XYPlotSp extends JFrame {
      * @param dataset  the data for the chart.
      * @returns a chart.
      */
-    private static JFreeChart createChart(final XYDataset dataset, final String titleGraph2) {
+    private static JFreeChart createChart(final XYDataset dataset, final String titleGraph2, final String titleAxisX) {
         // create the chart...
         final JFreeChart chart = ChartFactory.createXYLineChart(
             titleGraph2,      // chart title
-            tr("Energies"),                      // x axis label
+            tr(titleAxisX),                      // x axis label
             tr("Events number"),              // y axis label
             dataset,                  // data
             PlotOrientation.VERTICAL, // plot orientation (pretty obvious this one)
@@ -314,7 +314,7 @@ public class XYPlotSp extends JFrame {
         // the whole is taken if JComp[0] is selected and 1,2 et 3 are corrects
         try {
             ImageGenerated[] tabImgGenFromSpectra;
-            Vector vectValues = getValuesMinMaxNames(false,true);
+            Vector vectValues = getValuesMinMaxNames(false,true,true);
             ArrayList<String> nameOfImgGen = (ArrayList<String>) vectValues.get(0);
             ArrayList<float[]> minMaxSpectra = (ArrayList<float[]>) vectValues.get(1);
             float[][] minMaxSpectraArray = minMaxSpectra.toArray(new float[minMaxSpectra.size()][2]);
@@ -366,9 +366,10 @@ public class XYPlotSp extends JFrame {
      * @param nameIsImportant if false the method will not check the name
      * @return a vector containing the arraylist of the names and the arraylist of the [min,max]
      */
-    public Vector getValuesMinMaxNames(boolean minOrMax, boolean nameIsImportant){
+    public Vector getValuesMinMaxNames(boolean minOrMax, boolean nameIsImportant, boolean showError){
         ArrayList<String> nameOfImgGen = new ArrayList<String>();
         ArrayList<float[]> minMaxSpectra = new ArrayList<float[]>();
+        boolean errorShowed1=false, errorShowed2=false, errorShowed3=false, errorShowed4=false;
         for(int i=0; i<vectButtonsSupp.size();i++){
             JComponent[] tabJCompToCheck = (JComponent[]) vectButtonsSupp.get(i);
             JCheckBox checkBoxCurrent = (JCheckBox) tabJCompToCheck[0];
@@ -385,7 +386,10 @@ public class XYPlotSp extends JFrame {
                                 start = Float.valueOf(min.getText());
                             }
                             catch(NumberFormatException e){
-                                IJ.log(tr("Put numbers in the Min and Max text fields"));
+                                if(showError && !errorShowed1){
+                                    errorShowed1=true;
+                                    IJ.error(tr("Put numbers in the Min and Max text fields"));
+                                }
                             }
                             try {
                                 end = Float.valueOf(max.getText());
@@ -409,17 +413,26 @@ public class XYPlotSp extends JFrame {
                                             minMaxSpectra.add(tabMinMax);
                                         }
                                         else{
-                                            IJ.log(tr("The character '_' is not allowed"));
+                                            if(showError && !errorShowed1 && !errorShowed2){
+                                                IJ.error(tr("The character '_' is not allowed"));
+                                                errorShowed2=true;
+                                            }
                                         }
                                     }
                                     else{
-                                        IJ.log(tr("Give different title for each picture please"));
+                                        if(showError && !errorShowed1 && !errorShowed2 && !errorShowed3){
+                                            IJ.error(tr("Give different title for each picture please"));
+                                            errorShowed3=true;
+                                        }
                                     }
                                 }
                             }
                         }
                         else {
-                            IJ.log(tr("Give names please (other that Name)"));
+                            if(showError && !errorShowed1 && !errorShowed2 && !errorShowed3 && !errorShowed4){
+                                IJ.error(tr("Give names please (other that Name)"));
+                                errorShowed4=true;
+                            }
                         }
                     }
                 }
@@ -520,6 +533,12 @@ public class XYPlotSp extends JFrame {
             }
         }
         return null;
+    }
+    
+    public String checkCalib(){
+        if(spectraDrew.channelsAreCalibrated())
+            return "Energies";
+        return "Energy channels";
     }
         
     // Variables declaration - do not modify 

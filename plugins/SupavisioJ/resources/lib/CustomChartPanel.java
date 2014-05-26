@@ -3,6 +3,8 @@ package SupavisioJ.resources.lib;
 import ij.IJ;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
@@ -22,6 +24,7 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
     private XYPlotSp parentXYPlotSp; 
     private JFreeChart chart = null; 
     private float startValueX;
+    private boolean pressShift=false;
 
     /** 
     * constructor 
@@ -43,11 +46,12 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
     * @param mEvt information about the event. 
     */ 
     public void mousePressed(MouseEvent mEvt) { 
-      if (isACheckBoxSelected()) { 
-	setMouseZoomable(false,true); //zoom desactivation
-	super.mousePressed(mEvt);//call to the initial method 
-	startValueX = getPointInChart(mEvt,false); //to have correspondance with actual values
-	setMouseZoomable(true,false); //zomm activation
+      pressShift = (mEvt.getModifiers() & InputEvent.SHIFT_MASK) != 0;
+      if (isACheckBoxSelected() && !pressShift) { 
+        setMouseZoomable(false,true); //zoom desactivation
+        super.mousePressed(mEvt);//call to the initial method 
+        startValueX = getPointInChart(mEvt,false); //to have correspondance with actual values
+        setMouseZoomable(true,false); //zomm activation
       } 
       else{ 
 	super.mousePressed(mEvt); //call to the initial method 
@@ -60,7 +64,7 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
     * @param mEvt information about the event. 
     */ 
     public void mouseReleased(MouseEvent mEvt) { 
-      if (isACheckBoxSelected()) {  
+      if (isACheckBoxSelected() && !pressShift) {  
 	setMouseZoomable(false,true); 
 	super.mouseReleased(mEvt); 
         float endValueX = getPointInChart(mEvt,true);
@@ -74,6 +78,11 @@ public class CustomChartPanel extends ChartPanel implements MouseListener {
     
     public void update(float endValueX){
         JCheckBox checkBoxToChange = parentXYPlotSp.getLastCheckBoxActivated();
+        if (!checkBoxToChange.isSelected()){
+            ArrayList<JCheckBox> checkBoxsSelected = parentXYPlotSp.getCheckBoxSelected();
+            int nbOfCheckBox = checkBoxsSelected.size();
+            checkBoxToChange = checkBoxsSelected.get(nbOfCheckBox-1);
+        }
         JTextField minField = parentXYPlotSp.getField(checkBoxToChange,"Min");
         JTextField maxField = parentXYPlotSp.getField(checkBoxToChange,"Max");
         if (startValueX<=endValueX){

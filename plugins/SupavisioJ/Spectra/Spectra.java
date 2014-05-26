@@ -174,6 +174,10 @@ public class Spectra {
     this.energyMin=energyMin;
     this.stepEnergy=stepEnergy;
   }
+  
+  public boolean channelsAreCalibrated(){
+    return stepEnergy!=null;
+  }
 
   /**
    * Use this method to get the energies of the Spectra
