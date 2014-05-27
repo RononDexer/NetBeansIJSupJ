@@ -206,15 +206,21 @@ public class Spectra {
     return output;
   }
   
+  public XYPlotSp plotSpectra(String titleWindow, String titleGraph){
+      return plotSpectra(titleWindow, titleGraph,3);
+  }
+  
   /**
    * This method creates a new plot using XYPlotSp
    * @param titleWindow title of the windows where the Spectra will be draw
    * @param titleGraph title of the component where the Spectra will be draw
    * @return a frame of the class XYPlotSp, use showVisible to affich
    */
-  public XYPlotSp plotSpectra(String titleWindow, String titleGraph){
+  public XYPlotSp plotSpectra(String titleWindow, String titleGraph, int nbFieldsToProduce){
+    if(nbFieldsToProduce<=0)
+        nbFieldsToProduce=3;
     double[] xEnergies = convertFloatsToDoubles(getEnergies());
-    XYPlotSp plot1=new XYPlotSp(this,titleWindow,titleGraph,xEnergies,yEvt);
+    XYPlotSp plot1=new XYPlotSp(this,titleWindow,titleGraph,xEnergies,yEvt,nbFieldsToProduce);
     return plot1;//plot1.showVisible()
   }
 

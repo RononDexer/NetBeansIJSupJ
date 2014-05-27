@@ -21,9 +21,10 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle.ComponentPlacement;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -47,8 +48,9 @@ public class XYPlotSp extends JFrame {
     private static MainFrame parentWindow;
     private boolean yIsLog=false;
     private CheckBoxListenerSp checkBoxListener;
+    private final CustomChartPanel chartPanel;
     
-    public XYPlotSp(Spectra spectraDrew, final String titleWindow,final String titleGraph2, double[] energiesX, double[] dataY) {
+    public XYPlotSp(Spectra spectraDrew, final String titleWindow,final String titleGraph2, double[] energiesX, double[] dataY,int nbFieldsToProduce) {
         super(titleWindow);
         this.parentWindow=spectraDrew.getParentWindowS();
         this.titleGraph=titleGraph2;
@@ -58,11 +60,11 @@ public class XYPlotSp extends JFrame {
         //create the chart
         final JFreeChart chart = createChart(dataset,titleGraph2,checkCalib());
         this.chart = chart;
-        final CustomChartPanel chartPanel = new CustomChartPanel(chart,this);
+        this.chartPanel= new CustomChartPanel(chart,this);
         chartPanel.setMouseWheelEnabled(true);
         chartPanel.setPreferredSize(new Dimension(500, 270));
         jButtonLogLinActionPerformed(null);
-        initComponents(chartPanel);
+        initComponents(nbFieldsToProduce);
     }
     
     public Vector getVectButtonsSupp(){
@@ -150,22 +152,37 @@ public class XYPlotSp extends JFrame {
      * This method will link each CheckBox to CheckBoxListenerSp
      * @see CheckBoxListenerSp
      */
-    private void initComponents(ChartPanel chartPanel) {
+    private void initComponents(int nbFieldsToProduce) {
         checkBoxListener = new CheckBoxListenerSp(this);
-        for(int i=0;i<3;i++){
-            JComponent[] buttonsToAdd= new JComponent[4];
-            buttonsToAdd[0] = new JCheckBox();
-            buttonsToAdd[1] = new JTextField();
-            buttonsToAdd[2] = new JTextField();
-            buttonsToAdd[3] = new JTextField();
-            vectButtonsSupp.add(buttonsToAdd);
+        int nbFieldsToAdd=nbFieldsToProduce-vectButtonsSupp.size();
+        if (nbFieldsToAdd>0){
+            if((vectButtonsSupp.size()%3)!=0){
+                nbFieldsToAdd=3-(vectButtonsSupp.size()%3);
+                for(int j=0;j<nbFieldsToAdd;j++){
+                    addField();
+                }
+            }
+            nbFieldsToAdd=nbFieldsToProduce-vectButtonsSupp.size();
+            int nbLinesToAdd=nbFieldsToAdd/3;
+            if((nbFieldsToAdd%3)!=0)
+                nbLinesToAdd+=1;
+            int nbFieldsPerLine=3;
+            for (int i=0; i<nbLinesToAdd;i++){
+                if (i==nbLinesToAdd-1)
+                    nbFieldsPerLine=(nbFieldsToAdd%3);
+                if (nbFieldsPerLine==0)
+                    nbFieldsPerLine=3;
+                for(int j=0;j<nbFieldsPerLine;j++){
+                    addField();
+                }
+            }
         }
         jButtonPlus = new JButton();
         jButtonPlus.setText(tr("More ..."));
         
         jButtonPlus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButtonPlusActionPerformed(evt);
+                jButtonMoreActionPerformed(evt);
             }
         });
         jButtonGenImg = new JButton();
@@ -199,7 +216,9 @@ public class XYPlotSp extends JFrame {
                 jButtonSaveGupActionPerformed(evt);
             }
         });
-        
+        JPanel panel = new JPanel();
+        remove(getContentPane());
+        setContentPane(panel);
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         
@@ -208,38 +227,61 @@ public class XYPlotSp extends JFrame {
         SequentialGroup grpChartPanel=layout.createSequentialGroup();
         grpChartPanel.addComponent(chartPanel);
         paralGroupHor.addGroup(grpChartPanel);
-        SequentialGroup grp1 = layout.createSequentialGroup();
-        grp1.addContainerGap();
-        for (int i=0; i<3;i++){
-            JComponent[] tablJComp = (JComponent[]) vectButtonsSupp.get(i);
-            JCheckBox checkBoxCurrent = (JCheckBox) tablJComp[0];
-            JTextField textFieldCurrentName= (JTextField) tablJComp[1];
-            JTextField textFieldCurrentMin= (JTextField) tablJComp[2];
-            JTextField textFieldCurrentMax=(JTextField) tablJComp[3];
-            checkBoxCurrent.setText(tr("NA"));
-            textFieldCurrentName.setText(tr("Name"));
-            textFieldCurrentMin.setText(tr("Min"));
-            textFieldCurrentMax.setText(tr("Max"));
-            checkBoxCurrent.addItemListener(checkBoxListener);
-            textFieldCurrentMin.getDocument().addDocumentListener(checkBoxListener);
-            textFieldCurrentMax.getDocument().addDocumentListener(checkBoxListener);
-            grp1.addComponent(checkBoxCurrent, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE);
-            grp1.addPreferredGap(ComponentPlacement.RELATED);
-            grp1.addComponent(textFieldCurrentName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-            grp1.addPreferredGap(ComponentPlacement.RELATED);
-            grp1.addComponent(textFieldCurrentMin, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE);
-            grp1.addPreferredGap(ComponentPlacement.RELATED);
-            grp1.addComponent(textFieldCurrentMax, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE);
-
-            if (i!=3){
-                grp1.addGap(40,40,40);
-            }
-            else{
-                grp1.addContainerGap(25, Short.MAX_VALUE);
-            }
-        }
-        paralGroupHor.addGroup(grp1);
         
+        //panel for fields
+       
+        JPanel panelFields = new JPanel();
+        GroupLayout layoutPanelFields = new GroupLayout(panelFields);
+        panelFields.setLayout(layoutPanelFields);
+        ParallelGroup paralGroupHorPanelFields=layoutPanelFields.createParallelGroup(GroupLayout.Alignment.LEADING);
+        int nbLines=nbFieldsToProduce/3;
+        int nbFieldsPerLine=3;
+        for (int i=0; i<nbLines;i++){
+            IJ.log("nbLines "+String.valueOf(nbLines));
+            IJ.log("nbFieldsToProduce "+String.valueOf(nbFieldsToProduce));
+            SequentialGroup grp1 = layoutPanelFields.createSequentialGroup();
+            grp1.addContainerGap();
+            IJ.log("nbFieldsPerLine avt "+String.valueOf(nbFieldsPerLine));
+            if (i==nbLines-1)
+                nbFieldsPerLine=(nbFieldsToProduce%3);
+            IJ.log("nbFieldsPerLine apCond1 "+String.valueOf(nbFieldsPerLine));
+            if (nbFieldsPerLine==0)
+                nbFieldsPerLine=3;
+            IJ.log("nbFieldsPerLine apCond2 "+String.valueOf(nbFieldsPerLine));
+            for(int j=0;j<nbFieldsPerLine;j++){        
+                int currentField=i*3+j;
+                IJ.log("currentField "+String.valueOf(currentField));
+                JComponent[] tablJComp = (JComponent[]) vectButtonsSupp.get(currentField);
+                JCheckBox checkBoxCurrent = (JCheckBox) tablJComp[0];
+                JTextField textFieldCurrentName= (JTextField) tablJComp[1];
+                JTextField textFieldCurrentMin= (JTextField) tablJComp[2];
+                JTextField textFieldCurrentMax=(JTextField) tablJComp[3];
+                grp1.addComponent(checkBoxCurrent, GroupLayout.PREFERRED_SIZE, 20, GroupLayout.PREFERRED_SIZE);
+                grp1.addPreferredGap(ComponentPlacement.RELATED);
+                grp1.addComponent(textFieldCurrentName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+                grp1.addPreferredGap(ComponentPlacement.RELATED);
+                grp1.addComponent(textFieldCurrentMin, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE);
+                grp1.addPreferredGap(ComponentPlacement.RELATED);
+                grp1.addComponent(textFieldCurrentMax, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE);
+                if (j!=3){
+                    grp1.addGap(40,40,40);
+                }
+                else{
+                    grp1.addContainerGap(25, Short.MAX_VALUE);
+                }
+            }
+            paralGroupHorPanelFields.addGroup(grp1);
+        }
+        JScrollPane scroll = new JScrollPane(panelFields,JScrollPane.VERTICAL_SCROLLBAR_NEVER,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        if(nbFieldsToProduce>15){//so enable scrolling
+            scroll = new JScrollPane(panelFields,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);    
+            scroll.setPreferredSize(new Dimension(320,260));
+        }
+        scroll.setBorder(null);
+        SequentialGroup grpPanelFields=layout.createSequentialGroup();
+        grpPanelFields.addComponent(scroll);
+        paralGroupHor.addGroup(grpPanelFields);
+        //layout horizontal for buttons
         SequentialGroup grpButton = layout.createSequentialGroup();
         grpButton.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
         //grpButton.addGap(130);
@@ -255,28 +297,45 @@ public class XYPlotSp extends JFrame {
         grpButton.addGap(70,70,70);
         paralGroupHor.addGroup(GroupLayout.Alignment.TRAILING, grpButton);
         
-        //Layout vertical 
         
-        ParallelGroup grpIntChannel = layout.createParallelGroup(GroupLayout.Alignment.BASELINE);
-        for (int i=0;i<3;i++){
-            JComponent[] tablJComp = (JComponent[]) vectButtonsSupp.get(i);
-            JCheckBox checkBoxCurrent = (JCheckBox) tablJComp[0];
-            JTextField textFieldCurrentName= (JTextField) tablJComp[1];
-            JTextField textFieldCurrentMin= (JTextField) tablJComp[2];
-            JTextField textFieldCurrentMax= (JTextField) tablJComp[3];
-            grpIntChannel.addComponent(checkBoxCurrent);
-            grpIntChannel.addComponent(textFieldCurrentName,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
-            grpIntChannel.addComponent(textFieldCurrentMin,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
-            grpIntChannel.addComponent(textFieldCurrentMax,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
-        }
-       
+        //Layout vertical 
         ParallelGroup paralGroup2Vert=layout.createParallelGroup(GroupLayout.Alignment.LEADING);
         SequentialGroup grpAll = layout.createSequentialGroup();
         ParallelGroup gpChart = layout.createParallelGroup(GroupLayout.Alignment.BASELINE);
         gpChart.addComponent(chartPanel);
         grpAll.addGroup(gpChart);
-        grpAll.addContainerGap(10, Short.MAX_VALUE).addGroup(grpIntChannel);
-        grpAll.addPreferredGap(ComponentPlacement.RELATED);
+        
+        ParallelGroup paralGroup2VertPanFields=layoutPanelFields.createParallelGroup(GroupLayout.Alignment.LEADING);
+        SequentialGroup grpAllFields = layoutPanelFields.createSequentialGroup();
+        nbFieldsPerLine=3;
+        for (int i=0; i<nbLines;i++){
+            ParallelGroup grpIntChannel = layoutPanelFields.createParallelGroup(GroupLayout.Alignment.BASELINE);
+            if (i==nbLines-1)
+                nbFieldsPerLine=(nbFieldsToProduce%3);
+            if (nbFieldsPerLine==0)
+                nbFieldsPerLine=3;
+            for(int j=0;j<nbFieldsPerLine;j++){
+                int currentField=i*3+j;
+                JComponent[] tablJComp = (JComponent[]) vectButtonsSupp.get(currentField);
+                JCheckBox checkBoxCurrent = (JCheckBox) tablJComp[0];
+                JTextField textFieldCurrentName= (JTextField) tablJComp[1];
+                JTextField textFieldCurrentMin= (JTextField) tablJComp[2];
+                JTextField textFieldCurrentMax= (JTextField) tablJComp[3];
+                grpIntChannel.addComponent(checkBoxCurrent);
+                grpIntChannel.addComponent(textFieldCurrentName,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
+                grpIntChannel.addComponent(textFieldCurrentMin,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
+                grpIntChannel.addComponent(textFieldCurrentMax,GroupLayout.PREFERRED_SIZE, 24, GroupLayout.PREFERRED_SIZE);
+            }
+            grpAllFields.addContainerGap(10, Short.MAX_VALUE).addGroup(grpIntChannel);
+            grpAllFields.addPreferredGap(ComponentPlacement.RELATED);
+        }
+        grpAllFields.addGap(6, 6, 6);
+        paralGroup2VertPanFields.addGroup(GroupLayout.Alignment.TRAILING,grpAllFields);
+        
+        ParallelGroup grpPanFields = layout.createParallelGroup(GroupLayout.Alignment.BASELINE);
+        grpPanFields.addComponent(scroll);
+        grpAll.addGroup(grpPanFields);
+     
         ParallelGroup grpButtons = layout.createParallelGroup(GroupLayout.Alignment.BASELINE);
         grpButtons.addComponent(jButtonPlus, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
         grpButtons.addComponent(jButtonGenImg, GroupLayout.PREFERRED_SIZE, 21, GroupLayout.PREFERRED_SIZE);
@@ -288,23 +347,35 @@ public class XYPlotSp extends JFrame {
       
         paralGroup2Vert.addGroup(GroupLayout.Alignment.TRAILING,grpAll);
         
+        layoutPanelFields.setHorizontalGroup(paralGroupHorPanelFields);
+        layoutPanelFields.setVerticalGroup(paralGroup2VertPanFields);
         layout.setHorizontalGroup(paralGroupHor);
         layout.setVerticalGroup(paralGroup2Vert);
         pack();
     }                 
+    
+    private void addField(){
+        JComponent[] buttonsToAdd= new JComponent[4];
+        buttonsToAdd[0] = new JCheckBox();
+        buttonsToAdd[1] = new JTextField();
+        buttonsToAdd[2] = new JTextField();
+        buttonsToAdd[3] = new JTextField();
+        vectButtonsSupp.add(buttonsToAdd);
+        JCheckBox checkBoxCurrent = (JCheckBox) buttonsToAdd[0];
+        JTextField textFieldCurrentName= (JTextField) buttonsToAdd[1];
+        JTextField textFieldCurrentMin= (JTextField) buttonsToAdd[2];
+        JTextField textFieldCurrentMax=(JTextField) buttonsToAdd[3];
+        checkBoxCurrent.setText(tr("NA"));
+        textFieldCurrentName.setText(tr("Name"));
+        textFieldCurrentMin.setText(tr("Min"));
+        textFieldCurrentMax.setText(tr("Max"));
+        checkBoxCurrent.addItemListener(checkBoxListener);
+        textFieldCurrentMin.getDocument().addDocumentListener(checkBoxListener);
+        textFieldCurrentMax.getDocument().addDocumentListener(checkBoxListener);
+    }
 
-    private void jButtonPlusActionPerformed(java.awt.event.ActionEvent evt) {                                         
-        // TODO create 3 group of boutons at each evt
-        IJ.log("fonctionnalité non codée pour le moment");
-        //for(int i=0;i<3;i++){
-        //    JComponent[] buttonsToAdd= new JComponent[4];
-        //    buttonsToAdd[0]=new JCheckBox();
-        //    buttonsToAdd[1] = new JTextField();
-        //    buttonsToAdd[2] = new JTextField();
-        //    buttonsToAdd[3] = new JTextField();
-        //    vectButtonsSupp.add(buttonsToAdd);
-        //}
-        
+    private void jButtonMoreActionPerformed(java.awt.event.ActionEvent evt) {                                           
+        initComponents(vectButtonsSupp.size()+3);
     }   
     
     private void jButtonGenImgActionPerformed(java.awt.event.ActionEvent evt) {                                         
