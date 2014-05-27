@@ -1,9 +1,7 @@
 package SupavisioJ.resources.lib;
 
-import ij.IJ;
 import java.awt.Insets;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -12,6 +10,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import javax.swing.JCheckBox;
 import javax.swing.JTextField;
+
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;

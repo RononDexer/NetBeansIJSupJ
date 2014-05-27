@@ -63,7 +63,8 @@ public class XYPlotSp extends JFrame {
         this.chartPanel= new CustomChartPanel(chart,this);
         chartPanel.setMouseWheelEnabled(true);
         chartPanel.setPreferredSize(new Dimension(500, 270));
-        jButtonLogLinActionPerformed(null);
+        jButtonLogLinActionPerformed(null);        
+        checkBoxListener = new CheckBoxListenerSp(this);
         initComponents(nbFieldsToProduce);
     }
     
@@ -153,7 +154,6 @@ public class XYPlotSp extends JFrame {
      * @see CheckBoxListenerSp
      */
     private void initComponents(int nbFieldsToProduce) {
-        checkBoxListener = new CheckBoxListenerSp(this);
         int nbFieldsToAdd=nbFieldsToProduce-vectButtonsSupp.size();
         if (nbFieldsToAdd>0){
             if((vectButtonsSupp.size()%3)!=0){
@@ -237,20 +237,14 @@ public class XYPlotSp extends JFrame {
         int nbLines=nbFieldsToProduce/3;
         int nbFieldsPerLine=3;
         for (int i=0; i<nbLines;i++){
-            IJ.log("nbLines "+String.valueOf(nbLines));
-            IJ.log("nbFieldsToProduce "+String.valueOf(nbFieldsToProduce));
             SequentialGroup grp1 = layoutPanelFields.createSequentialGroup();
             grp1.addContainerGap();
-            IJ.log("nbFieldsPerLine avt "+String.valueOf(nbFieldsPerLine));
             if (i==nbLines-1)
                 nbFieldsPerLine=(nbFieldsToProduce%3);
-            IJ.log("nbFieldsPerLine apCond1 "+String.valueOf(nbFieldsPerLine));
             if (nbFieldsPerLine==0)
                 nbFieldsPerLine=3;
-            IJ.log("nbFieldsPerLine apCond2 "+String.valueOf(nbFieldsPerLine));
             for(int j=0;j<nbFieldsPerLine;j++){        
                 int currentField=i*3+j;
-                IJ.log("currentField "+String.valueOf(currentField));
                 JComponent[] tablJComp = (JComponent[]) vectButtonsSupp.get(currentField);
                 JCheckBox checkBoxCurrent = (JCheckBox) tablJComp[0];
                 JTextField textFieldCurrentName= (JTextField) tablJComp[1];
@@ -374,7 +368,7 @@ public class XYPlotSp extends JFrame {
         textFieldCurrentMax.getDocument().addDocumentListener(checkBoxListener);
     }
 
-    private void jButtonMoreActionPerformed(java.awt.event.ActionEvent evt) {                                           
+    private void jButtonMoreActionPerformed(java.awt.event.ActionEvent evt) {  
         initComponents(vectButtonsSupp.size()+3);
     }   
     
