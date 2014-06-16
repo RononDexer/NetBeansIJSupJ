@@ -7,6 +7,7 @@ import SupavisioJ.Spectra.Spectra;
 import ij.*;
 import ij.gui.ImageCanvas;
 import ij.gui.Roi;
+import ij.plugin.frame.RoiManager;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
@@ -150,7 +151,7 @@ public class ImageGenerated {
                   adcToCalcFromRoi.addEvent(currentEvt);
               }
         }   
-        String nameFile=sourceSpectra.getFileName();
+        String nameFile=sourceSpectra.getFileNameWithoutLvl()+"-"+title+"-"+ipRoi.getName();
         Spectra spectreNewCalc= new Spectra(adcToCalcFromRoi,nameFile,this);
         spectreNewCalc.setLevel(sourceSpectra.getLevel()+1);
         spectreNewCalc.setParentWindow(sourceSpectra.getParentWindow());
@@ -207,5 +208,20 @@ public class ImageGenerated {
   public String tr(String strToTranslate){
       return sourceSpectra.tr(strToTranslate);
   }
+
+  public RoiManager getRoiManager() {
+    return sourceSpectra.getRoiManager();
+  }
+  
+  public void setRoiManager(RoiManager roiManager) {
+    sourceSpectra.setRoiManager(roiManager);
+  }
+      
+  public void setRoiManagerVisibility(boolean roiManagerVisibility){
+    sourceSpectra.setRoiManagerVisibility(roiManagerVisibility);
+  }
     
+  public boolean getRoiManagerVisibility(){
+    return sourceSpectra.getRoiManagerVisibility();
+  }
 }

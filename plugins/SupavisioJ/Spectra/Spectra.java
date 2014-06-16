@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import SupavisioJ.resources.lib.XYPlotSp;
+import ij.plugin.frame.RoiManager;
 
 
 /**
@@ -116,6 +117,10 @@ public class Spectra {
       if (level==0)
         return nameFile;
       return nameFile+"-"+String.valueOf(level);
+  }
+  
+  public String getFileNameWithoutLvl(){
+      return nameFile;
   }
   
   public int getChannelMin(){
@@ -467,5 +472,21 @@ public class Spectra {
     
     public String tr(String strToTranslate){
         return parentWindow.tr(strToTranslate);
+    }
+
+    public RoiManager getRoiManager() {
+        return parentWindow.getRoiManager();
+    }
+    
+    public void setRoiManager(RoiManager roiManager) {
+        parentWindow.setRoiManager(roiManager);
+    }
+    
+    public void setRoiManagerVisibility(boolean roiManagerVisibility){
+        parentWindow.setRoiManagerVisibility(roiManagerVisibility);
+    }
+    
+    public boolean getRoiManagerVisibility(){
+        return parentWindow.getRoiManagerVisibility();
     }
 }

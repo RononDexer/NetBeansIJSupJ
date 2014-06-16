@@ -7,7 +7,16 @@ import SupavisioJ.FrameConfigSave.FrameConfigSave;
 import SupavisioJ.FrameConfigLang.FrameConfigLang;
 import SupavisioJ.ImageGenerated.ImageGenerated;
 import SupavisioJ.Spectra.Spectra;
+
 import ij.IJ;
+import ij.Menus;
+import ij.WindowManager;
+import ij.plugin.frame.RoiManager;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,13 +26,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFileChooser; 
+import javax.swing.JLabel;
+import javax.swing.WindowConstants;
 
 /**
  *This class is the first window which will be open at the launch of SupavisioJ
  */
-public class MainFrame extends javax.swing.JFrame {
+public class MainFrame extends javax.swing.JFrame implements WindowListener{
     private FrameConfigLang frameConfigLang= null;
     private FrameC frameConfigLst = new FrameC();
     private FrameConfigSave frameConfigSaveSession = new FrameConfigSave(this);
@@ -32,6 +45,8 @@ public class MainFrame extends javax.swing.JFrame {
     private String nameOfApplication = "SupavisioJ";
     private static ArrayList<String> availableLanguages = new ArrayList<String>();
     private static ArrayList<String[]> languageData = new ArrayList<>();
+    private static RoiManager roiManager =null;
+    private static boolean roiManagerVisibility=true;
 
     /**
      * Creates new form MainFrame
@@ -66,23 +81,23 @@ public class MainFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jButtonOpenLst = new javax.swing.JButton();
-        jLabelAsk = new javax.swing.JLabel();
-        jButtonOpenXYEList = new javax.swing.JButton();
-        jButtonParamLst = new javax.swing.JButton();
-        jButtonParamPIXE = new javax.swing.JButton();
-        jButtonSaveSession = new javax.swing.JButton();
-        jButtonParamSaveSession = new javax.swing.JButton();
-        jButtonRestore = new javax.swing.JButton();
-        jButtonParamRestore = new javax.swing.JButton();
-        jButtonLanguage = new javax.swing.JButton();
+        jButtonOpenLst = new JButton();
+        jLabelAsk = new JLabel();
+        jButtonOpenXYEList = new JButton();
+        jButtonParamLst = new JButton();
+        jButtonParamPIXE = new JButton();
+        jButtonSaveSession = new JButton();
+        jButtonParamSaveSession = new JButton();
+        jButtonRestore = new JButton();
+        jButtonParamRestore = new JButton();
+        jButtonLanguage = new JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("SupavisioJ");
 
         jButtonOpenLst.setText(tr("Open a .LST file"));
-        jButtonOpenLst.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButtonOpenLst.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 jButtonOpenLstActionPerformed(evt);
             }
         });
@@ -90,134 +105,134 @@ public class MainFrame extends javax.swing.JFrame {
         jLabelAsk.setText(tr("What do you want to do?"));
 
         jButtonOpenXYEList.setText(tr("Open a file in a XYE format"));
-        jButtonOpenXYEList.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButtonOpenXYEList.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 jButtonOpenXYEListActionPerformed(evt);
             }
         });
 
-        jButtonParamLst.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
-        jButtonParamLst.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButtonParamLst.setIcon(new ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamLst.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 jButtonParamLstActionPerformed(evt);
             }
         });
 
-        jButtonParamPIXE.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
-        jButtonParamPIXE.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButtonParamPIXE.setIcon(new ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamPIXE.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 jButtonParamPIXEActionPerformed(evt);
             }
         });
 
         jButtonSaveSession.setText(tr("Save the SpJ session"));
-        jButtonSaveSession.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButtonSaveSession.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 jButtonSaveSessionActionPerformed(evt);
             }
         });
 
-        jButtonParamSaveSession.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
-        jButtonParamSaveSession.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButtonParamSaveSession.setIcon(new ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamSaveSession.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 jButtonParamSaveSessionActionPerformed(evt);
             }
         });
 
         jButtonRestore.setText(tr("Restore files or sessions"));
-        jButtonRestore.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButtonRestore.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 jButtonRestoreActionPerformed(evt);
             }
         });
 
-        jButtonParamRestore.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
-        jButtonParamRestore.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButtonParamRestore.setIcon(new ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonParamRestore.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 jButtonParamRestoreActionPerformed(evt);
             }
         });
 
-        jButtonLanguage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
-        jButtonLanguage.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButtonLanguage.setIcon(new ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
+        jButtonLanguage.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 jButtonLanguageActionPerformed(evt);
             }
         });
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(49, 49, 49)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButtonOpenXYEList, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jButtonOpenXYEList, GroupLayout.PREFERRED_SIZE, 243, GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
-                                .addComponent(jButtonParamPIXE, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jButtonParamPIXE, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButtonSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jButtonSaveSession, GroupLayout.PREFERRED_SIZE, 243, GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
-                                .addComponent(jButtonParamSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jButtonParamSaveSession, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButtonRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jButtonRestore, GroupLayout.PREFERRED_SIZE, 243, GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
-                                .addComponent(jButtonParamRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                .addComponent(jButtonParamRestore, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(49, 49, 49)
-                                .addComponent(jButtonOpenLst, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(jButtonOpenLst, GroupLayout.PREFERRED_SIZE, 243, GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(109, 109, 109)
                                 .addComponent(jLabelAsk)))
                         .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jButtonParamLst, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButtonLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(jButtonParamLst, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButtonLanguage, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap(60, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabelAsk, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButtonLanguage, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabelAsk, GroupLayout.PREFERRED_SIZE, 32, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonLanguage, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonOpenLst)
-                    .addComponent(jButtonParamLst, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButtonParamLst, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(jButtonOpenXYEList)
-                    .addComponent(jButtonParamPIXE, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButtonParamPIXE, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(jButtonSaveSession)
-                    .addComponent(jButtonParamSaveSession, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButtonParamSaveSession, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(jButtonRestore)
-                    .addComponent(jButtonParamRestore, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButtonParamRestore, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(23, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButtonOpenLstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenLstActionPerformed
+    private void jButtonOpenLstActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonOpenLstActionPerformed
         frameConfigLst.openLST();
     }//GEN-LAST:event_jButtonOpenLstActionPerformed
 
-    private void jButtonParamLstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamLstActionPerformed
+    private void jButtonParamLstActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonParamLstActionPerformed
         frameConfigLst.setVisible(true);
     }//GEN-LAST:event_jButtonParamLstActionPerformed
 
-    private void jButtonOpenXYEListActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenXYEListActionPerformed
+    private void jButtonOpenXYEListActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonOpenXYEListActionPerformed
         String path=selectFile();
         DataFileXYEList fileXYE=new DataFileXYEList(path);
         ADC adcXYE = fileXYE.open(); 
@@ -230,11 +245,11 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonOpenXYEListActionPerformed
 
-    private void jButtonParamPIXEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamPIXEActionPerformed
+    private void jButtonParamPIXEActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonParamPIXEActionPerformed
         IJ.log(tr("No settings available for the moment"));
     }//GEN-LAST:event_jButtonParamPIXEActionPerformed
 
-    private void jButtonSaveSessionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonSaveSessionActionPerformed
+    private void jButtonSaveSessionActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonSaveSessionActionPerformed
         if(spectrasProduced.size()>0){
             String directory=selectDirectory();
             ArrayList<String> nameSpectra = new ArrayList<String>();
@@ -255,11 +270,11 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonSaveSessionActionPerformed
 
-    private void jButtonParamSaveSessionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamSaveSessionActionPerformed
+    private void jButtonParamSaveSessionActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonParamSaveSessionActionPerformed
         frameConfigSaveSession.setVisible(true);
     }//GEN-LAST:event_jButtonParamSaveSessionActionPerformed
 
-    private void jButtonRestoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRestoreActionPerformed
+    private void jButtonRestoreActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonRestoreActionPerformed
         String[] paths = selectFiles();
         for (String path : paths) {
             if(path.contains("sess.spj")){
@@ -292,14 +307,101 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonRestoreActionPerformed
 
-    private void jButtonParamRestoreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonParamRestoreActionPerformed
+    private void jButtonParamRestoreActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonParamRestoreActionPerformed
         IJ.log(tr("Uncoded feature for the moment"));
     }//GEN-LAST:event_jButtonParamRestoreActionPerformed
 
-    private void jButtonLanguageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonLanguageActionPerformed
+    private void jButtonLanguageActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonLanguageActionPerformed
         frameConfigLang.setVisible(true);
     }//GEN-LAST:event_jButtonLanguageActionPerformed
 
+    /**
+     * Use this method to get the RoiManager (it avoid some closing bug of the RoiManager)
+     * @return the current RoiManager or a new if non-existing. The new will not (and can not) be displayed.
+     */
+    public RoiManager getRoiManager(){
+        if (roiManager == null){
+            roiManager = RoiManager.getInstance();
+            if (roiManager == null){
+                roiManager = new RoiManager(true);
+                setRoiManagerVisibility(false);
+            }
+            setRoiManager(roiManager);
+        }
+        return roiManager;
+    }
+    
+    /**
+     * Remove the window listener from the RoiManager to avoid some bugs existing with this plugin in ImageJ
+     * Add this class as a window listener to hide the window on close
+     * @param roiManager the current RoiManager 
+     */
+    public void setRoiManager(RoiManager roiManager){
+        this.roiManager=roiManager;
+        WindowListener[] roiManagerListeners= roiManager.getWindowListeners();
+        for(WindowListener roiManagerListener : roiManagerListeners){
+            roiManager.removeWindowListener(roiManagerListener);
+        }
+        roiManager.addWindowListener(this);
+    }
+    
+    public void setRoiManagerVisibility(boolean roiManagerVisibility){
+        this.roiManagerVisibility=roiManagerVisibility;
+    }
+    
+    public boolean getRoiManagerVisibility(){
+        return roiManagerVisibility;
+    }
+    
+    public void handlesRoiManagerClose(){
+        getRoiManager().setVisible(false);
+    }
+    
+    /**
+     * Window listener for the RoiManager frame (and NOT for this frame)
+     */
+    public void windowClosed(WindowEvent e){
+        //handlesRoiManagerClose();
+    }
+    
+    /**
+     * Window listener for the RoiManager frame (and NOT for this frame)
+     */
+    public void windowClosing(WindowEvent e){
+        handlesRoiManagerClose();
+    }
+    
+    /**
+     * Window listener for the RoiManager frame (and NOT for this frame)
+     */
+    public void windowOpened(WindowEvent e) {}
+
+    /**
+     * Window listener for the RoiManager frame (and NOT for this frame)
+     */
+    public void windowIconified(WindowEvent e) {}
+
+    /**
+     * Window listener for the RoiManager frame (and NOT for this frame)
+     */
+    public void windowDeiconified(WindowEvent e) {}
+
+    /**
+     * Window listener for the RoiManager frame (and NOT for this frame)
+     */
+    public void windowActivated(WindowEvent e) {
+        if (IJ.isMacintosh() && IJ.getInstance()!=null) {
+            IJ.wait(10); // may be needed for Java 1.4 on OS X
+            setMenuBar(Menus.getMenuBar());
+        }
+        WindowManager.setWindow(this);
+    }
+    
+    /**
+     * Window listener for the RoiManager frame (and NOT for this frame)
+     */
+    public void windowDeactivated(WindowEvent e) {}
+    
     /**
      * This method will save the session (meaning all Spectras produced since the launch) in the given directory.
      * The ImageGenerated objects will be save if the user has changed the saving settings.
@@ -581,15 +683,15 @@ public class MainFrame extends javax.swing.JFrame {
     
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButtonLanguage;
-    private javax.swing.JButton jButtonOpenLst;
-    private javax.swing.JButton jButtonOpenXYEList;
-    private javax.swing.JButton jButtonParamLst;
-    private javax.swing.JButton jButtonParamPIXE;
-    private javax.swing.JButton jButtonParamRestore;
-    private javax.swing.JButton jButtonParamSaveSession;
-    private javax.swing.JButton jButtonRestore;
-    private javax.swing.JButton jButtonSaveSession;
-    private javax.swing.JLabel jLabelAsk;
+    private JButton jButtonLanguage;
+    private JButton jButtonOpenLst;
+    private JButton jButtonOpenXYEList;
+    private JButton jButtonParamLst;
+    private JButton jButtonParamPIXE;
+    private JButton jButtonParamRestore;
+    private JButton jButtonParamSaveSession;
+    private JButton jButtonRestore;
+    private JButton jButtonSaveSession;
+    private JLabel jLabelAsk;
     // End of variables declaration//GEN-END:variables
 }
