@@ -3,16 +3,15 @@ package SupavisioJ.MainFrame;
 import SupavisioJ.ConvertListFiles.ADC.ADC;
 import SupavisioJ.ConvertListFiles.FrameC.FrameC;
 import SupavisioJ.DataFileXYEList.DataFileXYEList;
-import SupavisioJ.FrameConfigSave.FrameConfigSave;
 import SupavisioJ.FrameConfigLang.FrameConfigLang;
+import SupavisioJ.FrameConfigSave.FrameConfigSave;
+import SupavisioJ.FrameConfigXYEList.FrameConfigXYEList;
 import SupavisioJ.ImageGenerated.ImageGenerated;
 import SupavisioJ.Spectra.Spectra;
-
 import ij.IJ;
 import ij.Menus;
 import ij.WindowManager;
 import ij.plugin.frame.RoiManager;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -40,6 +39,7 @@ public class MainFrame extends javax.swing.JFrame implements WindowListener{
     private FrameConfigLang frameConfigLang= null;
     private FrameC frameConfigLst = new FrameC();
     private FrameConfigSave frameConfigSaveSession = new FrameConfigSave(this);
+    private FrameConfigXYEList frameConfigXYEList = new FrameConfigXYEList(this);
     private ArrayList<Spectra> spectrasProduced = new ArrayList<Spectra>();
     private boolean saveImagesOfSession = false;
     private String nameOfApplication = "SupavisioJ";
@@ -47,6 +47,8 @@ public class MainFrame extends javax.swing.JFrame implements WindowListener{
     private static ArrayList<String[]> languageData = new ArrayList<>();
     private static RoiManager roiManager =null;
     private static boolean roiManagerVisibility=true;
+    private int nbFieldsWhenOpenXYEListFile = 3;
+    private boolean fillWithPredefValXYEList = false;
 
     /**
      * Creates new form MainFrame
@@ -121,7 +123,7 @@ public class MainFrame extends javax.swing.JFrame implements WindowListener{
         jButtonParamPIXE.setIcon(new ImageIcon(getClass().getResource("/SupavisioJ/resources/images/avance-parametres-32.png"))); // NOI18N
         jButtonParamPIXE.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                jButtonParamPIXEActionPerformed(evt);
+                jButtonParamXYEListActionPerformed(evt);
             }
         });
 
@@ -240,14 +242,14 @@ public class MainFrame extends javax.swing.JFrame implements WindowListener{
             Spectra spectraXYE= new Spectra(adcXYE,fileXYE.getName());
             if(spectraXYE.getEnergies().length>1){//check if a correct file has been open
                 spectraXYE.setParentWindow(this);
-                spectraXYE.plotSpectra(nameOfApplication, (String) tr("Spectra")+" "+spectraXYE.getFileName()).showVisible();
+                spectraXYE.plotSpectra(nameOfApplication, (String) tr("Spectra")+" "+spectraXYE.getFileName(), nbFieldsWhenOpenXYEListFile).showVisible();
             }
         }
     }//GEN-LAST:event_jButtonOpenXYEListActionPerformed
 
-    private void jButtonParamPIXEActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonParamPIXEActionPerformed
-        IJ.log(tr("No settings available for the moment"));
-    }//GEN-LAST:event_jButtonParamPIXEActionPerformed
+    private void jButtonParamXYEListActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonParamXYEListActionPerformed
+        frameConfigXYEList.setVisible(true);
+    }//GEN-LAST:event_jButtonParamXYEListActionPerformed
 
     private void jButtonSaveSessionActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jButtonSaveSessionActionPerformed
         if(spectrasProduced.size()>0){
@@ -315,6 +317,18 @@ public class MainFrame extends javax.swing.JFrame implements WindowListener{
         frameConfigLang.setVisible(true);
     }//GEN-LAST:event_jButtonLanguageActionPerformed
 
+    public void setNbFieldXYEList(int nbFields) {
+        nbFieldsWhenOpenXYEListFile=nbFields;
+    }
+    
+    public void setFillWithPredefValXYEList(boolean fill){
+        fillWithPredefValXYEList = fill;
+    }
+    
+    public boolean getFillWithPredefValXYEList(){
+        return fillWithPredefValXYEList;
+    }
+    
     /**
      * Use this method to get the RoiManager (it avoid some closing bug of the RoiManager)
      * @return the current RoiManager or a new if non-existing. The new will not (and can not) be displayed.
@@ -547,7 +561,7 @@ public class MainFrame extends javax.swing.JFrame implements WindowListener{
         BufferedReader buff=null;
         String languageName= null;
         try {
-          buff=buff = new BufferedReader(new FileReader(path));//file opening
+          buff = new BufferedReader(new FileReader(path));//file opening
           for (int i=0;i<3;i++) {
             if(i==2){
                 languageName = buff.readLine();

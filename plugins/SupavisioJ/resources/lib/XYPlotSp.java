@@ -9,8 +9,12 @@ import ij.*;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
 import javax.swing.GroupLayout;
@@ -21,6 +25,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -49,8 +56,13 @@ public class XYPlotSp extends JFrame {
     private boolean yIsLog=false;
     private CheckBoxListenerSp checkBoxListener;
     private final CustomChartPanel chartPanel;
+    private JMenuBar jMenuBarWin;
+    private JMenu jMenuSettings;
+    private JMenuItem jMenuSettSaveAsDef;
+    private ArrayList<String[]> preDefValuesFields = new ArrayList<String[]>();
+    private String pathSavedValuesFields = "plugins/SupavisioJ/resources/lib/saveFieldsDef.txt";;
     
-    public XYPlotSp(Spectra spectraDrew, final String titleWindow,final String titleGraph2, double[] energiesX, double[] dataY,int nbFieldsToProduce) {
+    public XYPlotSp(Spectra spectraDrew, final String titleWindow,final String titleGraph2, double[] energiesX, double[] dataY,int nbFieldsToProduce, boolean fillFields) {
         super(titleWindow);
         this.parentWindow=spectraDrew.getParentWindowS();
         this.titleGraph=titleGraph2;
@@ -65,6 +77,15 @@ public class XYPlotSp extends JFrame {
         chartPanel.setPreferredSize(new Dimension(500, 270));
         jButtonLogLinActionPerformed(null);        
         checkBoxListener = new CheckBoxListenerSp(this);
+        if (fillFields){
+            try{
+                restorePredefValuesFields();
+                if (preDefValuesFields.size() > nbFieldsToProduce){
+                    nbFieldsToProduce = preDefValuesFields.size();
+                }
+            }
+            catch(IOException e){}
+        }
         initComponents(nbFieldsToProduce);
     }
     
@@ -177,6 +198,17 @@ public class XYPlotSp extends JFrame {
                 }
             }
         }
+        jMenuBarWin = new JMenuBar();
+        jMenuSettings = new JMenu(tr("Settings"));
+        jMenuSettSaveAsDef = new JMenuItem(tr("Save fields as default"));
+        jMenuSettSaveAsDef.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuSettSaveAsDefActionPerformed(evt);
+            }
+        });
+        jMenuSettings.add(jMenuSettSaveAsDef);
+        jMenuBarWin.add(jMenuSettings);
+        this.setJMenuBar(jMenuBarWin);
         jButtonPlus = new JButton();
         jButtonPlus.setText(tr("More ..."));
         
@@ -360,19 +392,68 @@ public class XYPlotSp extends JFrame {
         JTextField textFieldCurrentMin= (JTextField) buttonsToAdd[2];
         JTextField textFieldCurrentMax=(JTextField) buttonsToAdd[3];
         checkBoxCurrent.setText(tr("NA"));
-        textFieldCurrentName.setText(tr("Name"));
-        textFieldCurrentMin.setText(tr("Min"));
-        textFieldCurrentMax.setText(tr("Max"));
+        //check if it has to be fill
+        int currentNbFields = vectButtonsSupp.size();
+        int nbFieldsToFill = preDefValuesFields.size();
+        if(currentNbFields>nbFieldsToFill){    
+            textFieldCurrentName.setText(tr("Name"));
+            textFieldCurrentMin.setText(tr("Min"));
+            textFieldCurrentMax.setText(tr("Max"));
+        }
+        else {
+            String[] textOfCurrentGroup = preDefValuesFields.get(currentNbFields-1);
+            int currentCheckBoxState = Integer.valueOf(textOfCurrentGroup[0]);
+            if (currentCheckBoxState == 1) 
+                checkBoxCurrent.setSelected(true);
+            textFieldCurrentName.setText(textOfCurrentGroup[1]);
+            textFieldCurrentMin.setText(textOfCurrentGroup[2]);
+            textFieldCurrentMax.setText(textOfCurrentGroup[3]);
+        }
         checkBoxCurrent.addItemListener(checkBoxListener);
         textFieldCurrentMin.getDocument().addDocumentListener(checkBoxListener);
         textFieldCurrentMax.getDocument().addDocumentListener(checkBoxListener);
     }
 
-    private void jButtonMoreActionPerformed(java.awt.event.ActionEvent evt) {  
+    private void jMenuSettSaveAsDefActionPerformed(ActionEvent evt){
+        try{
+            BufferedWriter buff = new BufferedWriter(new FileWriter(pathSavedValuesFields,false));//Création du fichier si non existant et append=false si existant
+            for (int i=0;i<vectButtonsSupp.size();i++){
+                JComponent[] tabJCompToCheck = (JComponent[]) vectButtonsSupp.get(i);
+                JCheckBox checkBoxCurrent = (JCheckBox) tabJCompToCheck[0];
+                JTextField fieldName =  (JTextField) tabJCompToCheck[1];
+                JTextField fieldMin =  (JTextField) tabJCompToCheck[2];
+                JTextField fieldMax =  (JTextField) tabJCompToCheck[3];
+                if(checkBoxCurrent.isSelected() || !fieldName.getText().equals("Name") || !fieldMin.getText().equals("Min") || !fieldMax.getText().equals("Max") ){
+                    if(checkBoxCurrent.isSelected()){
+                        buff.write(String.valueOf(1));
+                    }
+                    else {
+                        buff.write(String.valueOf(0));
+                    }
+                    buff.write("\t");
+                    buff.write(fieldName.getText());
+                    buff.write("\t");
+                   
+                    buff.write(fieldMin.getText());
+                    buff.write("\t");
+                    
+                    buff.write(fieldMax.getText());
+                    buff.write("\n");
+                }
+            }
+            buff.flush();   // buffer is released
+            buff.close();   // buffer & stream are closed.    
+        }
+        catch(IOException e){
+            IJ.log(tr("Fail to save the session Spj"));
+        }
+        
+    }
+    private void jButtonMoreActionPerformed(ActionEvent evt) {  
         initComponents(vectButtonsSupp.size()+3);
     }   
     
-    private void jButtonGenImgActionPerformed(java.awt.event.ActionEvent evt) {                                         
+    private void jButtonGenImgActionPerformed(ActionEvent evt) {                                         
         // gen img for all checkbox selected
         //First which case is selected
         // number of case = vectButtonsSupp.size()
@@ -404,6 +485,14 @@ public class XYPlotSp extends JFrame {
         catch(NullPointerException e){}
     }
     
+    
+    private void restorePredefValuesFields() throws IOException{
+        String[] lines = spectraDrew.getParentWindow().readLinesFile(pathSavedValuesFields);
+        for (int i=0; i<lines.length; i++){
+            String[] currentFieldsGroup = lines[i].split("\t");
+            preDefValuesFields.add(currentFieldsGroup);            
+        }
+    }
     
     public ArrayList<JCheckBox> getCheckBoxSelected(){
         ArrayList<JCheckBox> tabCheckBoxSelected = new ArrayList<JCheckBox>();

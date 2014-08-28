@@ -225,7 +225,8 @@ public class Spectra {
     if(nbFieldsToProduce<=0)
         nbFieldsToProduce=3;
     double[] xEnergies = convertFloatsToDoubles(getEnergies());
-    XYPlotSp plot1=new XYPlotSp(this,titleWindow,titleGraph,xEnergies,yEvt,nbFieldsToProduce);
+    boolean fill = parentWindow.getFillWithPredefValXYEList();
+    XYPlotSp plot1=new XYPlotSp(this,titleWindow,titleGraph,xEnergies,yEvt,nbFieldsToProduce,fill);
     return plot1;//plot1.showVisible()
   }
 

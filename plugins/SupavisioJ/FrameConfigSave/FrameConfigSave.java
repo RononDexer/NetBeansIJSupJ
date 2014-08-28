@@ -1,12 +1,18 @@
 package SupavisioJ.FrameConfigSave;
 
 import SupavisioJ.MainFrame.MainFrame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.AbstractButton;
+import javax.swing.GroupLayout;
+import javax.swing.JCheckBox;
+import javax.swing.WindowConstants;
+import javax.swing.JFrame;
 
 /**
  *FrameConfigSave is the frame launch if the user wants to change the saving options
  */
-public class FrameConfigSave extends javax.swing.JFrame {
+public class FrameConfigSave extends JFrame {
     
     private MainFrame supavisioJFrame;
     
@@ -27,32 +33,32 @@ public class FrameConfigSave extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        saveImg = new javax.swing.JCheckBox();
+        saveImg = new JCheckBox();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         saveImg.setText(tr("sauvegarder images"));
-        saveImg.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        saveImg.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 saveImgActionPerformed(evt);
             }
         });
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGap(0, 277, Short.MAX_VALUE)
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(0, 0, Short.MAX_VALUE)
                     .addComponent(saveImg)
                     .addGap(0, 0, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGap(0, 66, Short.MAX_VALUE)
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(0, 0, Short.MAX_VALUE)
                     .addComponent(saveImg)
@@ -65,7 +71,7 @@ public class FrameConfigSave extends javax.swing.JFrame {
     /**
      * This method is called if the corresponding checbox is selected and indicates to the MainFrame the corresponding setting.
      */
-    private void saveImgActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveImgActionPerformed
+    private void saveImgActionPerformed(ActionEvent evt) {//GEN-FIRST:event_saveImgActionPerformed
         AbstractButton AB = (AbstractButton) evt.getSource();
         supavisioJFrame.setSaveImg(AB.getModel().isSelected());
     }//GEN-LAST:event_saveImgActionPerformed
@@ -75,6 +81,6 @@ public class FrameConfigSave extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox saveImg;
+    private JCheckBox saveImg;
     // End of variables declaration//GEN-END:variables
 }
