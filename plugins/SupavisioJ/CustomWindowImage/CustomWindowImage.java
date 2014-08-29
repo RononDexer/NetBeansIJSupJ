@@ -140,7 +140,7 @@ public class CustomWindowImage extends StackWindow implements ActionListener,Adj
                 //newRoiManager.setExtendedState(Frame.NORMAL);
                 //newRoiManager.setVisible(true);
                 //newRoiManager.toFront();
-                selectedImages[z].setRoiManagerVisibility(true); 
+                selectedImages[z].setRoiManagerVisibility(true);
             }
             else{
                 oldRoiManager.setVisible(true);
@@ -188,8 +188,10 @@ public class CustomWindowImage extends StackWindow implements ActionListener,Adj
                     manager.addRoi(roiToAddOrRename);
                 }
             }
-            setNewName(roiToAddOrRename,newName,0);
-            manager.addRoi(roiToAddOrRename);
+            else{
+                setNewName(roiToAddOrRename,newName,0);
+                manager.addRoi(roiToAddOrRename);
+            }
         }
         newName=roiToAddOrRename.getName();
         nameRoiField.setText(newName);
@@ -244,14 +246,24 @@ public class CustomWindowImage extends StackWindow implements ActionListener,Adj
      */
     public void changeNameRoi(Roi roiToRename, String newName){
         RoiManager manager = selectedImages[0].getRoiManager();
-        Hashtable<String, Roi> table = (Hashtable<String, Roi>) manager.getROIs();
-        for (String labelRoi : table.keySet()) {
-            Roi currentRoi = table.get(labelRoi);
-            if(roiToRename==currentRoi || roiToRename.equals(currentRoi)){
-                table.remove(labelRoi);
-                table.put(newName, roiToRename);
+        Roi[] arrayOfRoi = manager.getRoisAsArray();
+        for (int i=0;i<arrayOfRoi.length;i++){
+            Roi currentRoi = arrayOfRoi[i];
+            if (roiToRename==currentRoi || roiToRename.equals(currentRoi)){
+                manager.select(i);
+                manager.runCommand("Rename", newName);
             }
         }
+        //solution 2 : not used because the RoiManager won't update itself
+        //Hashtable<String, Roi> table = (Hashtable<String, Roi>) manager.getROIs();
+        //for (String labelRoi : table.keySet()) {
+        //    Roi currentRoi = table.get(labelRoi);
+        //    if(roiToRename==currentRoi || roiToRename.equals(currentRoi)){
+        //        table.remove(labelRoi);
+        //        table.put(newName, roiToRename);
+        //    }
+        //}
+        
     }
     
     public synchronized void adjustmentValueChanged(AdjustmentEvent adjEv) { 

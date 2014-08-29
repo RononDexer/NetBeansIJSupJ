@@ -29,13 +29,14 @@ import javax.swing.GroupLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser; 
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.WindowConstants;
 
 /**
  *This class is the first window which will be open at the launch of SupavisioJ
  */
-public class MainFrame extends javax.swing.JFrame implements WindowListener{
+public class MainFrame extends JFrame implements WindowListener{
     private FrameConfigLang frameConfigLang= null;
     private FrameC frameConfigLst = new FrameC();
     private FrameConfigSave frameConfigSaveSession = new FrameConfigSave(this);
@@ -361,6 +362,10 @@ public class MainFrame extends javax.swing.JFrame implements WindowListener{
     
     public void setRoiManagerVisibility(boolean roiManagerVisibility){
         this.roiManagerVisibility=roiManagerVisibility;
+        if(roiManagerVisibility){//brings the RoiManager to front
+            this.requestFocus();
+            roiManager.requestFocus();
+        }
     }
     
     public boolean getRoiManagerVisibility(){
