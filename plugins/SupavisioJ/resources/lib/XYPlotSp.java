@@ -60,7 +60,7 @@ public class XYPlotSp extends JFrame {
     private JMenu jMenuSettings;
     private JMenuItem jMenuSettSaveAsDef;
     private ArrayList<String[]> preDefValuesFields = new ArrayList<String[]>();
-    private String pathSavedValuesFields = "plugins/SupavisioJ/resources/lib/saveFieldsDef.txt";;
+    private String pathSavedValuesFields = "plugins/SupavisioJ/resources/lib/saveFieldsDef.txt";
     
     public XYPlotSp(Spectra spectraDrew, final String titleWindow,final String titleGraph2, double[] energiesX, double[] dataY,int nbFieldsToProduce, boolean fillFields) {
         super(titleWindow);
@@ -80,9 +80,8 @@ public class XYPlotSp extends JFrame {
         if (fillFields){
             try{
                 restorePredefValuesFields();
-                if (preDefValuesFields.size() > nbFieldsToProduce){
+                if (preDefValuesFields.size() > nbFieldsToProduce)
                     nbFieldsToProduce = preDefValuesFields.size();
-                }
             }
             catch(IOException e){}
         }
@@ -445,7 +444,7 @@ public class XYPlotSp extends JFrame {
             buff.close();   // buffer & stream are closed.    
         }
         catch(IOException e){
-            IJ.log(tr("Fail to save the session Spj"));
+            IJ.error(tr("Fail to save the fields"));
         }
         
     }
@@ -487,7 +486,7 @@ public class XYPlotSp extends JFrame {
     
     
     private void restorePredefValuesFields() throws IOException{
-        String[] lines = spectraDrew.getParentWindow().readLinesFile(pathSavedValuesFields);
+        String[] lines = spectraDrew.getParentWindow().readLinesFile(pathSavedValuesFields,false);
         for (int i=0; i<lines.length; i++){
             String[] currentFieldsGroup = lines[i].split("\t");
             preDefValuesFields.add(currentFieldsGroup);            

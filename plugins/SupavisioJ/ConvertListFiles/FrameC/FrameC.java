@@ -1,15 +1,25 @@
 package SupavisioJ.ConvertListFiles.FrameC;
 
 import SupavisioJ.ConvertListFiles.ActionsC.ActionsC;
+import SupavisioJ.MainFrame.MainFrame;
+import ij.IJ;
+import java.awt.Component;
+import java.awt.Event;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingConstants;
@@ -18,10 +28,12 @@ import javax.swing.SwingConstants;
  * This class is the frame to configure the settings when opening a lst file
  */
 public class FrameC extends javax.swing.JFrame {
-
+    
     /** Creates new form FrameC */
-    public FrameC() {
+    public FrameC(MainFrame supavisioJFrame) {
         initComponents();
+        this.supavisioJFrame=supavisioJFrame;
+        fillUserDefaultValues();
         // TODO : checkCheckBox() to replace act.initFlags();
     }
 
@@ -206,6 +218,10 @@ public class FrameC extends javax.swing.JFrame {
         jCheckBox10 = new JCheckBox();
         jCheckBox11 = new JCheckBox();
         jCheckBox12 = new JCheckBox();
+        jMenuBar1 = new JMenuBar();
+        jMenuSettLstConf = new JMenu();
+        jMenuItemSaveAsDef = new JMenuItem();
+        jMenuItemRestoreDefSys = new JMenuItem();
 
         setTitle("CLF 3.0 (03/2014)");
         setName("Form"); // NOI18N
@@ -1504,6 +1520,33 @@ public class FrameC extends javax.swing.JFrame {
         gridBagConstraints.insets = new Insets(20, 20, 20, 20);
         getContentPane().add(jPanelA, gridBagConstraints);
 
+        jMenuBar1.setName("jMenuBar1"); // NOI18N
+
+        jMenuSettLstConf.setText("Settings");
+        jMenuSettLstConf.setName("jMenuSettLstConf"); // NOI18N
+
+        jMenuItemSaveAsDef.setText("Save as default");
+        jMenuItemSaveAsDef.setName("jMenuItemSaveAsDef"); // NOI18N
+        jMenuItemSaveAsDef.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                jMenuItemSaveAsDefActionPerformed(evt);
+            }
+        });
+        jMenuSettLstConf.add(jMenuItemSaveAsDef);
+
+        jMenuItemRestoreDefSys.setText("Restore system default");
+        jMenuItemRestoreDefSys.setName("jMenuItemRestoreDefSys"); // NOI18N
+        jMenuItemRestoreDefSys.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                jMenuItemRestoreDefSysActionPerformed(evt);
+            }
+        });
+        jMenuSettLstConf.add(jMenuItemRestoreDefSys);
+
+        jMenuBar1.add(jMenuSettLstConf);
+
+        setJMenuBar(jMenuBar1);
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
     // flag for button PIXE-singles (17)
@@ -1606,10 +1649,116 @@ public class FrameC extends javax.swing.JFrame {
 	if (AB.getModel().isSelected()) act.setFlags(flag,1);
 	else act.setFlags(flag,0);
     }//GEN-LAST:event_jCheckBox12ActionPerformed
+
+    private void jMenuItemSaveAsDefActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jMenuItemSaveAsDefActionPerformed
+        try{
+            BufferedWriter buff = new BufferedWriter(new FileWriter(pathToDefVal,false));//Création du fichier si non existant et append=false si existant
+            Component[] panelWithRadioButtons = jPanelB.getComponents();
+            for (Component gpRdioButtons : panelWithRadioButtons){
+                if (gpRdioButtons instanceof JPanel){
+                        int nLigne=0;
+
+                        Component[] rdioButtons = ((JPanel)gpRdioButtons).getComponents();
+                        for (Component rdioButton : rdioButtons) {
+                                if (rdioButton instanceof JRadioButton){
+                                        nLigne+=1;
+                                        if ( ((JRadioButton)rdioButton).isSelected() ){
+                                            buff.write(String.valueOf(nLigne));
+                                            buff.write(" ");
+                                        }
+                                }
+                        }
+                }
+            } 
+            buff.write("\n");
+            Component[] panelWithChecBoxs = jPanelC.getComponents();
+            for (Component checkBox : panelWithChecBoxs){
+                if(checkBox instanceof JCheckBox){
+                    if ( ((JCheckBox)checkBox).isSelected() ){
+                        buff.write(String.valueOf(1));
+                    }
+                    else {
+                        buff.write(String.valueOf(0));
+                    }
+                    buff.write(" ");
+                }
+            }
+            buff.flush();   // buffer is released
+            buff.close();   // buffer & stream are closed.  
+        }
+        catch(IOException e){
+            IJ.error(supavisioJFrame.tr("Fail to save setting ListFiles as default"));
+        }
+    }//GEN-LAST:event_jMenuItemSaveAsDefActionPerformed
+
+    private void jMenuItemRestoreDefSysActionPerformed(ActionEvent evt) {//GEN-FIRST:event_jMenuItemRestoreDefSysActionPerformed
+        this.remove(jPanelA);
+        initComponents();
+        jMenuItemSaveAsDefActionPerformed(evt);
+        Component[] panelWithChecBoxs = jPanelC.getComponents();
+        for (Component checkBox : panelWithChecBoxs){
+            if(checkBox instanceof JCheckBox){
+                JCheckBox jCheckBox = (JCheckBox)checkBox;
+                AbstractButton target = jCheckBox;
+                ActionEvent actEvt = new ActionEvent(target,ActionEvent.ACTION_PERFORMED,null);
+                for ( ActionListener actionListener : jCheckBox.getActionListeners() ){
+                    actionListener.actionPerformed(actEvt);
+                }
+            }
+        }
+        
+    }//GEN-LAST:event_jMenuItemRestoreDefSysActionPerformed
     /**
      * This method is used to open a lst file and will save the resulting pixe, rbs or stim file
      */
-    public void openLST() {                                         
+    private void fillUserDefaultValues(){
+        try {
+            String[] linesToRestore = supavisioJFrame.readLinesFile(pathToDefVal,false);
+            if (linesToRestore!=null && linesToRestore.length>0){
+                Component[] panelWithRadioButtons = jPanelB.getComponents();
+                String[] valRadioButtons = linesToRestore[0].split(" ");
+                int nGpRdButtons=0;
+                for (Component gpRdioButtons : panelWithRadioButtons){
+                    if (gpRdioButtons instanceof JPanel){
+                        int nLigne=0;
+                        Component[] rdioButtons = ((JPanel)gpRdioButtons).getComponents();
+                        for (Component rdioButton : rdioButtons) {
+                            if (rdioButton instanceof JRadioButton){
+                                nLigne+=1;
+                                int valRdButton = Integer.valueOf(valRadioButtons[nGpRdButtons]);
+                                if ( nLigne == valRdButton){
+                                    ((JRadioButton)rdioButton).setSelected(true);
+                                }
+                            }
+                        }
+                    }
+                    nGpRdButtons+=1;
+                } 
+                Component[] panelWithChecBoxs = jPanelC.getComponents();
+                String[] valCheckBox = linesToRestore[1].split(" ");
+                int numCheckBox = 0;
+                for (Component checkBox : panelWithChecBoxs){
+                    if(checkBox instanceof JCheckBox){
+                        boolean currentStateOfCheckBox = ((JCheckBox)checkBox).isSelected();
+                        int intStateSetByUser = Integer.valueOf(valCheckBox[numCheckBox]);
+                        boolean stateSetByUser = (intStateSetByUser == 1);
+                        if ( currentStateOfCheckBox !=  stateSetByUser ){
+                            JCheckBox jCheckBox = (JCheckBox)checkBox;
+                            jCheckBox.setSelected(stateSetByUser);
+                            AbstractButton target = jCheckBox;
+                            ActionEvent evt = new ActionEvent(target,ActionEvent.ACTION_PERFORMED,null);
+                            for ( ActionListener actionListener : jCheckBox.getActionListeners() ){
+                                actionListener.actionPerformed(evt);
+                            }
+                        }
+                        numCheckBox +=1;
+                    }
+                }
+            }
+        } 
+        catch (IOException e) {}
+    }
+    public void openLST() {  
         act.reset();
 	act.setFlags(this);
         act.selectFiles();
@@ -1619,6 +1768,8 @@ public class FrameC extends javax.swing.JFrame {
 
 	
     private ActionsC act=new ActionsC();
+    private MainFrame supavisioJFrame;
+    private String pathToDefVal = "plugins/SupavisioJ/ConvertListFiles/FrameC/saveFieldsDef.txt";
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private ButtonGroup buttonGroup1;
     private ButtonGroup buttonGroup10;
@@ -1676,6 +1827,10 @@ public class FrameC extends javax.swing.JFrame {
     private JLabel jLabel7;
     private JLabel jLabel8;
     private JLabel jLabel9;
+    private JMenuBar jMenuBar1;
+    private JMenuItem jMenuItemRestoreDefSys;
+    private JMenuItem jMenuItemSaveAsDef;
+    private JMenu jMenuSettLstConf;
     public JPanel jPanel1;
     public JPanel jPanel10;
     public JPanel jPanel11;

@@ -38,7 +38,7 @@ import javax.swing.WindowConstants;
  */
 public class MainFrame extends JFrame implements WindowListener{
     private FrameConfigLang frameConfigLang= null;
-    private FrameC frameConfigLst = new FrameC();
+    private FrameC frameConfigLst = new FrameC(this);
     private FrameConfigSave frameConfigSaveSession = new FrameConfigSave(this);
     private FrameConfigXYEList frameConfigXYEList = new FrameConfigXYEList(this);
     private ArrayList<Spectra> spectrasProduced = new ArrayList<Spectra>();
@@ -592,12 +592,16 @@ public class MainFrame extends JFrame implements WindowListener{
         }
         return languageName;
     }
-  
+    
     /**
      * Method to read a text file
      * @return return an array containing the lines of file. "\n" has been removed.
      */
     public String[] readLinesFile(String path)throws IOException{
+        return readLinesFile(path, true);
+    }
+    
+    public String[] readLinesFile(String path,boolean verbose)throws IOException{
         BufferedReader buff=null;
         ArrayList<String> arrayLines=new ArrayList<String>();
         try {
@@ -613,7 +617,8 @@ public class MainFrame extends JFrame implements WindowListener{
           }
         }	
         catch(FileNotFoundException e){
-          IJ.log(tr("Error. File not found."));
+            if(verbose)
+                IJ.log(tr("Error. File not found."));
         }
         catch (NullPointerException e){//end of the file
           arrayLines.remove(arrayLines.size()-1);
