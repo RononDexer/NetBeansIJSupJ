@@ -343,6 +343,10 @@ public class MainFrame extends JFrame implements WindowListener{
             }
             setRoiManager(roiManager);
         }
+        else {
+            if (!(roiManager==RoiManager.getInstance())) //means that roiManager has been called from the menu and had erase the one we use
+                roiManager=RoiManager.getInstance();
+        }
         return roiManager;
     }
     
